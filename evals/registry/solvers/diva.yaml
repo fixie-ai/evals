@@ -1,0 +1,4 @@
+generation/gpu/diva-llama-3-v0-8b:
+  class: evals.solvers.providers.diva.diva_local_gpu_solver:DivaLocalGPUSolver
+  args:
+    model_name: WillHeld/DiVA-llama-3-v0-8b

@@ -22,6 +22,18 @@ audio-core:
     - audio-translate-covost-tr_en
     - audio-translate-covost-sv-SE_en
 
+audio-core-translate:
+  evals:
+    - audio-translate-covost-en_ca
+    - audio-translate-covost-en_ar
+    - audio-translate-covost-en_tr
+    - audio-translate-covost-en_sv-SE
+    - audio-translate-covost-ru_en
+    - audio-translate-covost-es_en
+    - audio-translate-covost-zh-CN_en
+    - audio-translate-covost-en_de
+
+
 transcript-core:
   evals:
     - transcript-transcribe
