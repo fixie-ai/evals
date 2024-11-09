@@ -1,0 +1,11 @@
+# You should use your own Replicate deployment for this solver.
+generation/replicate/llamaomni:
+  class: evals.solvers.providers.llamaomni.llamaomni_replicate_solver:LlamaOmniReplicateSolver
+  args:
+    deployment_owner: "lipatrick"
+    deployment_name: "llama-omni"
+    extra_options:
+      temperature: 0
+      top_p: 0
+      max_new_tokens: 256
+  
