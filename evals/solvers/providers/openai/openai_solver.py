@@ -1,8 +1,11 @@
 import logging
 from typing import Any, Dict, Optional, Union
+import time
+from tenacity import retry, stop_after_attempt, wait_exponential, retry_if_exception_type
+from functools import wraps
 
 import tiktoken
-from openai import BadRequestError
+from openai import BadRequestError, RateLimitError, APITimeoutError, APIError
 
 from evals.completion_fns.openai import OpenAIChatCompletionFn, OpenAICompletionFn
 from evals.prompt.base import chat_prompt_to_text_prompt
@@ -18,6 +21,27 @@ ROLE_TO_PREFIX = {
     "spacer": "-----",
 }
 
+def retry_on_error(max_retries=3, base_delay=1):
+    """Decorator that implements retry logic for API calls"""
+    def decorator(func):
+        @wraps(func)
+        def wrapper(*args, **kwargs):
+            for attempt in range(max_retries):
+                try:
+                    return func(*args, **kwargs)
+                except (RateLimitError, APITimeoutError, APIError) as e:
+                    if attempt == max_retries - 1:  # Last attempt
+                        raise  # Re-raise the last exception
+                    
+                    delay = base_delay * (2 ** attempt)  # Exponential backoff
+                    logging.warning(
+                        f"API call failed with error: {str(e)}. "
+                        f"Retrying in {delay} seconds... (Attempt {attempt + 1}/{max_retries})"
+                    )
+                    time.sleep(delay)
+            return func(*args, **kwargs)  # Final attempt
+        return wrapper
+    return decorator
 
 class OpenAISolver(Solver):
     """
@@ -37,6 +61,7 @@ class OpenAISolver(Solver):
         role_to_prefix: Dict = ROLE_TO_PREFIX,
         postprocessors: list[str] = [],
         registry: Any = None,
+        max_retries: int = 3,
     ):
         super().__init__(postprocessors=postprocessors)
         self.valid_answers = valid_answers
@@ -45,6 +70,7 @@ class OpenAISolver(Solver):
         self.fixed_start = fixed_start
         self.continue_last_assistant_msg = continue_last_assistant_msg
         self.role_to_prefix = role_to_prefix
+        self.max_retries = max_retries
 
         if "model" not in completion_fn_options:
             raise ValueError("OpenAISolver requires a model to be specified.")
@@ -112,6 +138,22 @@ class OpenAISolver(Solver):
         # by default, None, which points to the default API Key which is "OPENAI_API_KEY"
         return None
 
+    @retry_on_error(max_retries=3)
+    def _make_api_request(self, msgs, is_chat_model: bool, **kwargs) -> tuple[Any, str]:
+        """Make API request and return both the raw result and processed completion"""
+        if is_chat_model:
+            completion_result = self.completion_fn(prompt=msgs, **kwargs)
+            completion_output = completion_result.get_completions()[0]
+            return completion_result, completion_output
+        else:
+            prompt = self._render_completion_prompt(msgs)
+            stop_sequences = self._get_msg_separators()
+            if len(stop_sequences) > 4:
+                logging.warn("Using more than 4 stop sequences is unsupported")
+            completion_result = self.completion_fn(prompt=prompt, stop=stop_sequences, **kwargs)
+            completion_output = completion_result.get_completions()[0]
+            return completion_result, completion_output
+
     def _solve(self, task_state: TaskState, **kwargs) -> SolverResult:
         raw_msgs = [
             {"role": "system", "content": task_state.task_description},
@@ -122,35 +164,24 @@ class OpenAISolver(Solver):
             return precheck_outcome
 
         msgs = self._process_msgs(raw_msgs)
+        is_chat = self._is_chat_model(self.model)
 
         try:
-            if self._is_chat_model(self.model):
-                completion_result = self.completion_fn(prompt=msgs, **kwargs)
-
-                completion_output = completion_result.get_completions()[0]
-
-                # Chat model output is already parsed, just return it
+            completion_result, completion_output = self._make_api_request(
+                msgs, is_chat_model=is_chat, **kwargs
+            )
+            
+            if is_chat:
                 solver_result = SolverResult(
                     completion_output, raw_completion_result=completion_result
                 )
             else:
-                # Manually render the prompt for completion models so that we can
-                # implement things like custom render formats and/or fixed_start
-                prompt = self._render_completion_prompt(msgs)
-
-                stop_sequences = self._get_msg_separators()
-                if len(stop_sequences) > 4:
-                    logging.warn("Using more than 4 stop sequences is unsupported")
-                completion_result = self.completion_fn(prompt=prompt, stop=stop_sequences, **kwargs)
-
-                completion_output = completion_result.get_completions()[0]
-
-                # Completion model output needs to be parsed to remove role prefixes
                 solver_result = SolverResult(
                     self._parse_completion_response(completion_output),
                     raw_output=completion_output,
                     raw_completion_result=completion_result,
                 )
+
         except self._completion_exception as e:
             solver_result = self._handle_completion_exception(e)
 
