@@ -52,6 +52,7 @@ dependencies = [
     "transformers[torch]",
     "peft",
     "librosa",
+    "accelerate",
 ]
 
 [project.urls]

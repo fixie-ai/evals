@@ -1,0 +1,7 @@
+generation/gpu/functionary-medium:
+  class: evals.solvers.providers.functionary.local_gpu_solver:FunctionaryGPUSolver
+  args:
+    model: meetkai/functionary-medium-v3.1
+    extra_options:
+      temperature: 1.0
+      max_new_tokens: 256

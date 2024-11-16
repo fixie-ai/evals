@@ -4,7 +4,7 @@ generation/direct/ultravox-70b:
     completion_fn_options:
       model: fixie-ai/ultravox-70B
       extra_options:
-        temperature: 1.0
+        temperature: 0
         # empirically, setting frequency_penalty to 1.0 seems to get us closer to the HF results
         # but it's not clear why this is necessary
         # TODO: investigate and try to match HF/VLLM results without this
@@ -16,11 +16,21 @@ generation/direct/ultravox-8b:
     completion_fn_options:
       model: fixie-ai/ultravox-8B
       extra_options:
-        temperature: 1.0
+        temperature: 0
         # empirically, setting frequency_penalty to 1.0 seems to get us closer to the HF results
         # but it's not clear why this is necessary
         # TODO: investigate and try to match HF/VLLM results without this
         frequency_penalty: 1.0
+
+generation/gpu/ultravox-hermes-70b: 
+  class: evals.solvers.providers.fixie.fixie_solver:FixieSolver
+  args:
+    completion_fn_options:
+      model: fixie-ai/ultravox-hermes-70B-dev
+      extra_options:
+        temperature: 0
+        frequency_penalty: 1.0
+      
 
 generation/gpu/ultravox-dev:
   class: evals.solvers.providers.fixie.local_gpu_solver:FixieGPUSolver
@@ -28,4 +38,41 @@ generation/gpu/ultravox-dev:
     model: fixie-ai/ultravox-dev
     extra_options:
       temperature: 0
-      max_new_tokens: 512
+      max_new_tokens: 256
+
+
+generation/gpu/ultravox-v0_4_1-llama-3_1-70b: 
+  class: evals.solvers.providers.fixie.local_gpu_solver:FixieGPUSolver
+  args:
+    model: fixie-ai/ultravox-v0_4_1-llama-3_1-70b
+    extra_options:
+      temperature: 0
+      max_new_tokens: 256
+
+
+generation/gpu/ultravox-v0_4_1-llama-3_1-8b:
+  class: evals.solvers.providers.fixie.local_gpu_solver:FixieGPUSolver
+  args:
+    model: fixie-ai/ultravox-v0_4_1-llama-3_1-8b
+    extra_options:
+      temperature: 0
+      max_new_tokens: 256
+
+
+generation/gpu/ultravox-hermes-8b: 
+  class: evals.solvers.providers.fixie.local_gpu_solver:FixieGPUSolver
+  args:
+    model: fixie-ai/ultravox-v0_4_1-Hermes-3-Llama-3_1-8B
+    extra_options:
+      temperature: 0
+      max_new_tokens: 256
+
+
+
+generation/gpu/ultravox-functionary-70b: 
+  class: evals.solvers.providers.fixie.local_gpu_solver:FixieGPUSolver
+  args:
+    model: fixie-ai/ultravox-v0_4_1-llama-3_1-70b-functionary-medium-v3_1
+    extra_options:
+      temperature: 0
+      max_new_tokens: 256

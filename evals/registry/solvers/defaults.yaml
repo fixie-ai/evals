@@ -13,6 +13,15 @@ human_cli:
 
 # generation tasks
 
+generation/direct/gpt-4o:
+  class: evals.solvers.providers.openai.openai_solver:OpenAISolver
+  args:
+    completion_fn_options:
+      model: gpt-4o
+      extra_options:
+        temperature: 0
+        max_tokens: 512
+
 generation/direct/gpt-3.5-turbo:
   class: evals.solvers.providers.openai.openai_solver:OpenAISolver
   args:

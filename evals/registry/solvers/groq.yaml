@@ -22,7 +22,7 @@ generation/direct/llama-3-groq-8b-chat:
     completion_fn_options:
       model: llama3-groq-8b-8192-tool-use-preview
       extra_options:
-        temperature: 1
+        temperature: 0
         max_tokens: 512
 
 generation/direct/llama-3-groq-70b-chat:
@@ -31,5 +31,5 @@ generation/direct/llama-3-groq-70b-chat:
     completion_fn_options:
       model: llama3-groq-70b-8192-tool-use-preview
       extra_options:
-        temperature: 1
+        temperature: 0
         max_tokens: 512

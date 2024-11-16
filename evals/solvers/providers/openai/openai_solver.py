@@ -117,6 +117,8 @@ class OpenAISolver(Solver):
             {"role": "system", "content": task_state.task_description},
         ] + [msg.to_dict() for msg in task_state.messages]
 
+        print(f"kwargs: {kwargs}")
+
         precheck_outcome = self._perform_prechecks(raw_msgs)
         if precheck_outcome is not None:
             return precheck_outcome
@@ -128,6 +130,7 @@ class OpenAISolver(Solver):
                 completion_result = self.completion_fn(prompt=msgs, **kwargs)
 
                 completion_output = completion_result.get_completions()[0]
+                print(f"Received completion: {completion_output}")
 
                 # Chat model output is already parsed, just return it
                 solver_result = SolverResult(

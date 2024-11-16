@@ -10,13 +10,16 @@ from concurrent import futures
 from typing import Any, Callable, Dict, List, Optional, TypeVar
 
 import librosa
+import numpy as np
 import torch
 import torch.distributed
 import torch.multiprocessing as mp
 import torch.nn.functional as F
 import transformers
+from accelerate import init_empty_weights, load_checkpoint_and_dispatch
 
 from evals.solvers.solver import Solver, SolverResult
+from evals.solvers.utils import BatchedProcessPoolExecutor
 from evals.task_state import TaskState
 
 SAMPLE_RATE = 16000
@@ -77,6 +80,8 @@ class FixieGPUSolver(Solver):
 
         if "max_new_tokens" not in extra_options:
             extra_options["max_new_tokens"] = 256
+
+        print("Using batch size: \n", max_batch_size)
 
         self.executor = BatchedProcessPoolExecutor(
             max_workers=max(1, num_gpus),
@@ -150,37 +155,82 @@ class DataCollatorForSeq2SeqWithAudio(transformers.DataCollatorForSeq2Seq):
 def solver_initializer(
     rank_queue: mp.Queue, world_size: int, model: str, extra_options: Dict[str, Any]
 ):
-    """Initializes the pipeline and the underlying model on the specified GPU."""
+    import os
+    import logging
+    
     rank = rank_queue.get()
-
-    if torch.cuda.is_available():
-        device = torch.device("cuda", rank)
-    else:
-        device = torch.device("cpu")
+    
+    # Only initialize distributed setup if we have multiple GPUs
+    use_distributed = world_size > 1
+    if use_distributed:
+        os.environ['MASTER_ADDR'] = 'localhost'
+        os.environ['MASTER_PORT'] = '12355'
+        
+        try:
+            torch.distributed.init_process_group(
+                backend='nccl',
+                init_method='env://',
+                world_size=world_size,
+                rank=rank,
+                timeout=datetime.timedelta(minutes=1)
+            )
+        except Exception as e:
+            logging.warning(f"Failed to initialize distributed process group: {e}")
+            use_distributed = False
 
     global pipe, collator
 
+    config = transformers.AutoConfig.from_pretrained(
+        model,
+        trust_remote_code=True
+    )
+    
+    # Initialize model with Accelerate for efficient multi-GPU inference
+    with init_empty_weights():
+        model = transformers.AutoModelForCausalLM.from_config(
+            config,
+            trust_remote_code=True,
+        )
+    
+    # Load and dispatch model across available GPUs
+    model = load_checkpoint_and_dispatch(
+        model,
+        model,
+        device_map="auto",
+        dtype=torch.bfloat16,
+        no_split_module_classes=["GPTBigCodeBlock", "LlamaDecoderLayer"]  # Adjust based on your model
+    )
+
     pipe = transformers.pipeline(
+        "ultravox-pipeline",
         model=model,
+        config=config,
         trust_remote_code=True,
-        device=device,
         torch_dtype=torch.bfloat16,
         **extra_options,
     )
+
     pipe.tokenizer.padding_side = "left"
+    pipe.processor = transformers.AutoProcessor.from_pretrained(model)
 
     collator = DataCollatorForSeq2SeqWithAudio(tokenizer=pipe.tokenizer)
 
+    if use_distributed:
+        try:
+            torch.distributed.barrier()
+        except Exception as e:
+            logging.warning(f"Failed to synchronize at barrier: {e}")
+
     if rank == 0:
-        # Let the other initializers start now that the download has finished
         for i in range(1, world_size):
             rank_queue.put(i)
 
 
-def solver_worker(inputs: Dict[str, Any]):
+def solver_worker(inputs: List[Dict[str, Any]]):
     prepped = [pipe.preprocess(item) for item in inputs]
     prepped = [
-        {k: v.to(pipe.model.device).squeeze(0) for k, v in sample.items()} for sample in prepped
+        {k: v.to(pipe.model.device) for k, v in sample.items()} 
+        for sample in prepped
     ]
 
     batch = collator(prepped)
@@ -193,6 +243,7 @@ def solver_worker(inputs: Dict[str, Any]):
 
         input_len = batch["input_ids"].shape[1]
 
+        # The model will automatically handle tensor parallelism during generation
         outputs = pipe.model.generate(
             **batch,
             eos_token_id=terminators,
@@ -201,129 +252,6 @@ def solver_worker(inputs: Dict[str, Any]):
         out_texts = [
             pipe.tokenizer.decode(o[input_len:], skip_special_tokens=True) for o in outputs
         ]
+        print(f"Generated outputs: {out_texts}")
         return out_texts
 
-
-T_In = TypeVar("T_In")
-T_Out = TypeVar("T_Out")
-
-
-@dataclasses.dataclass
-class BatchableWorkItem:
-    request: T_In
-    future: futures.Future
-
-
-class BatchedProcessPoolExecutor:
-    def __init__(
-        self,
-        *args,
-        batch_worker_fn: Callable[[List[T_In]], List[T_Out]],
-        max_batch_size: int,
-        max_workers: int = 1,
-        **kwargs
-    ):
-        self.max_batch_size = max_batch_size
-        self.batch_worker_fn = batch_worker_fn
-        self._batch_queue = queue.Queue()
-        self.available_workers = threading.Semaphore(value=max_workers + 1)
-        self.process_pool_executor = futures.process.ProcessPoolExecutor(
-            *args, max_workers=max_workers, **kwargs
-        )
-        self._batch_thread = threading.Thread(target=self.batch_requests)
-        self._batch_thread.start()
-
-    def submit(self, request: T_In) -> futures.Future:
-        item = BatchableWorkItem(request, futures.Future())
-        self._batch_queue.put(item)
-        return item.future
-
-    def shutdown(self):
-        # shut down the process pool executor
-        self.process_pool_executor.shutdown()
-
-        while not self._batch_queue.empty():
-            try:
-                item = self._batch_queue.get(block=False)
-                if item is not None:
-                    item.future.set_exception(Exception("The pool has already shut down."))
-            except queue.Empty:
-                pass
-
-        # signal the batch thread to stop
-        self._batch_queue.put(None)
-        print("batched process pool executor has shut down.")
-
-    def batch_requests(self):
-        """
-        Batches requests and dispatches them to the process pool executor
-
-        Steps:
-        1. greedily grab items
-        2. dispatch them to ProcessPoolExecutor
-        3. set the results back on the source future
-        """
-        # Wait a bit for the GPUs to be ready and allow the batch_queue to fill up a bit
-        time.sleep(1)
-
-        while True:
-            # We don't wait to rush ahead too fast and fill up the queue with
-            # batch_size=1 requests, but we also don't want any GPUs to be idle.
-            self.available_workers.acquire()
-
-            # greedily grab items
-            work_items: List[BatchableWorkItem] = [self._batch_queue.get()]
-            while len(work_items) < self.max_batch_size:
-                try:
-                    item = self._batch_queue.get(block=False)
-                    work_items.append(item)
-                except queue.Empty:
-                    break
-
-            # When we're done, a None item is added to the queue to signal the end of requests.
-            # We will ignore any existing work_items since the process pool executor
-            # is already shutting down.
-            if work_items[-1] is None:
-                if len(work_items) > 1:
-                    logging.warn(
-                        "There remained work items in the queue when shutting down. The items will be ignored."
-                    )
-                return
-
-            requests = [item.request for item in work_items]
-            task_futures = [item.future for item in work_items]
-
-            # dispatch to the process pool
-            try:
-                result_future = self.process_pool_executor.submit(self.batch_worker_fn, requests)
-            except Exception as e:
-                self._handle_exception(e, task_futures)
-                return
-
-            # add callback for when the result is ready
-            result_future.add_done_callback(_set_results_cb(task_futures, self._handle_exception))
-            result_future.add_done_callback(lambda _: self.available_workers.release())
-
-    def _handle_exception(self, e: Exception, task_futures: List[futures.Future]):
-        """
-        Handles exceptions by simply panicking:
-         * prints the traceback to allow debugging
-         * sets exception on all the task futures
-         * shuts down the executor
-        """
-        print(traceback.format_exc())
-        for f in task_futures:
-            if not f.done():
-                f.set_exception(e)
-        self.shutdown()
-
-
-def _set_results_cb(task_futures: List[futures.Future], handle_exception_cb: Callable):
-    def cb(batch_future: futures.Future):
-        try:
-            for f, r in zip(task_futures, batch_future.result()):
-                f.set_result(r)
-        except Exception as e:
-            handle_exception_cb(e, task_futures)
-
-    return cb
