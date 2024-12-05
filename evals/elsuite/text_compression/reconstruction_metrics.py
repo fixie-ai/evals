@@ -1,9 +1,13 @@
 from typing import Mapping
 
 import jiwer
-import spacy_universal_sentence_encoder
 
-nlp = spacy_universal_sentence_encoder.load_model("en_use_lg")
+try:
+    import spacy_universal_sentence_encoder
+
+    nlp = spacy_universal_sentence_encoder.load_model("en_use_lg")
+except ImportError:
+    nlp = None
 
 
 def reconstruction_metrics(original: str, decompressed: str) -> Mapping:

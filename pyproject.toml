@@ -40,7 +40,6 @@ dependencies = [
     "seaborn",
     "snowflake-connector-python[pandas]",
     "soundfile",
-    "spacy-universal-sentence-encoder",
     "statsmodels",
     "termcolor",
     "tiktoken",
