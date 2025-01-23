@@ -13,6 +13,7 @@ transcript:
 audio-core:
   evals:
     - audio-transcribe
+    - audio-bigbench
     - audio-translate-covost-zh-CN_en
     - audio-translate-covost-ru_en
     - audio-translate-covost-es_en
@@ -66,7 +67,3 @@ audio-sqa:
 transcript-sqa:
   evals:
     - transcript-sqa-web-questions
-
-audio-bigbench:
-  evals:
-    - audio-bigbench
