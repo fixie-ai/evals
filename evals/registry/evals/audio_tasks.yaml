@@ -116,6 +116,16 @@ audio-sblimp.validation.v1:
   args:
     dataset: hf://DynamicSuperb/SentenceGrammarAcceptability_sBLIMP?split=test
 
+audio-bigbench:
+  id: audio-bigbench.validation.v1
+  metrics: [accuracy]
+audio-bigbench.validation.v1:
+  class: evals.elsuite.audio.eval:BigBenchAudio
+  args:
+    dataset: hf://fixie-ai/big_bench_audio?split=train
+    eval_completion_fn: gpt-4o
+
+
 # Text-only versions
 
 transcript-transcribe:

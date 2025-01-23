@@ -470,3 +470,71 @@ class SpokenCompare(MatchAudioTask):
         match = normalized == expected
         evals.record.record_match(match, expected=expected, sampled=sampled)
         return match
+
+class BigBenchAudio(MatchAudioTask):
+    TASK_PROMPT = f"Answer the following question: \n\n{AUDIO_PLACEHOLDER}"
+    BIGBENCH_SYSTEM_PROMPT = """
+    Assess whether the following CANDIDATE ANSWER is CORRECT or INCORRECT.
+    For the CANDIDATE ANSWER to be correct, it must be consistent with the OFFICIAL ANSWER.
+    If the CANDIDATE ANSWER contradicts itself, assess the first proposed answer.
+    If the CANDIDATE ANSWER provides a final answer and working, assess the final answer only.
+    If the CANDIDATE ANSWER includes irrelevant information, assess only the relevant information.
+    If the CANDIDATE ANSWER includes a numeric value it is ok if it is spelled e.g. 7 or seven
+    It is ok if the CANDIDATE ANSWER involves a misspelling of a person's name e.g. Leda or Lida, Autry or Audrie.
+    """
+
+    BIGBENCH_USER_PROMPT = """
+    The question, for reference only: START QUESTION {question} \n\nEND QUESTION
+
+    The OFFICIAL ANSWER:{expected_answer}
+
+    BEGIN CANDIDATE ANSWER TO ASSESS
+
+    {generated_answer}
+
+    END CANDIDATE ANSWER TO ASSESS
+
+    Reply only with CORRECT or INCORRECT.
+    """
+
+    def __init__(self, eval_completion_fn: CompletionFn, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        self.eval_completion_kwargs = {"max_tokens": 1024}
+        self.eval_completion_fn = evals.registry.Registry().make_completion_fn(eval_completion_fn)
+
+    def _build_prompt(self, sample: Sample, text_only: bool = False):
+        input = sample["transcript"] if text_only else sample["audio"]
+        return build_messages(self.DEFAULT_PROMPT, self.TASK_PROMPT, input)
+
+    def _compute_metrics(self, sample: Sample, sampled: str):
+        messages = [
+            {"role": "system", "content": self.BIGBENCH_SYSTEM_PROMPT},
+            {
+                "role": "user", 
+                "content": self.BIGBENCH_USER_PROMPT.format(
+                    question=sample["transcript"],
+                    generated_answer=sampled,
+                    expected_answer=sample["official_answer"]
+                )
+            }
+        ]
+
+        result = self.eval_completion_fn(
+            prompt=messages,
+            **self.eval_completion_kwargs
+        )
+        
+        rating_text = result.get_completions()[0].strip().upper()
+        score = 1 if rating_text == "CORRECT" else 0
+
+        match = score == 1
+        evals.record.record_match(
+            match, 
+            expected=sample["official_answer"], 
+            sampled=sampled
+        )
+        return match
+
+    def _compute_corpus_metrics(self):
+        # Use the same pattern as Transcribe
+        return {"accuracy": evals.metrics.get_accuracy(self._get_match_events())}

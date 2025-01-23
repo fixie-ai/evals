@@ -13,6 +13,7 @@ transcript:
 audio-core:
   evals:
     - audio-transcribe
+    - audio-bigbench
     - audio-translate-covost-zh-CN_en
     - audio-translate-covost-ru_en
     - audio-translate-covost-es_en
