@@ -527,7 +527,6 @@ class BigBenchAudio(MatchAudioTask):
         rating_text = result.get_completions()[0].strip().upper()
         score = 1 if rating_text == "CORRECT" else 0
 
-        # Following Transcribe's pattern exactly:
         match = score == 1
         evals.record.record_match(
             match, 
