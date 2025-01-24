@@ -41,6 +41,7 @@ audio-core-translate:
 transcript-core:
   evals:
     - transcript-transcribe
+    - text-bigbench
     - transcript-translate-covost-zh-CN_en
     - transcript-translate-covost-ru_en
     - transcript-translate-covost-es_en
