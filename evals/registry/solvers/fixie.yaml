@@ -2,7 +2,7 @@ generation/direct/ultravox-70b:
   class: evals.solvers.providers.fixie.fixie_solver:FixieSolver
   args:
     completion_fn_options:
-      model: fixie-ai/ultravox-v0_4_1-llama-3_3-70b
+      model: fixie-ai/ultravox-70B
       extra_options:
         temperature: 1.0
         # empirically, setting frequency_penalty to 1.0 seems to get us closer to the HF results

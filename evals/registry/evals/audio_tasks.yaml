@@ -124,6 +124,7 @@ audio-bigbench.validation.v1:
   args:
     dataset: hf://fixie-ai/big_bench_audio?split=train
     eval_completion_fn: gpt-4o
+    max_audio_duration: 65
 
 
 # Text-only versions
@@ -136,6 +137,7 @@ text-bigbench.validation.v1:
     dataset: hf://fixie-ai/big_bench_audio?split=train
     eval_completion_fn: gpt-4o
     text_only: true
+    max_audio_duration: 65
 
 transcript-transcribe:
   id: transcript-transcribe.test.v1

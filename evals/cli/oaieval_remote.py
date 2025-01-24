@@ -117,5 +117,5 @@ if __name__ == "__main__":
 
 
 
-#python evals/cli/oaieval_remote.py generation/gpu/ultravox text-bigbench
+#python evals/cli/oaieval_remote.py generation/direct/ultravox-70b text-bigbench
 

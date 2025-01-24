@@ -7,7 +7,7 @@ class FixieSolver(ThirdPartySolver):
     AUDIO_PLACEHOLDER = "<|reserved_special_token_0|>"
 
     def __init__(self, api_base: Optional[str] = None, **kwargs):
-        super().__init__(api_base or "https://ultravox.api.fixie.ai/v1", "ULTRAVOX_API_KEY", **kwargs)
+        super().__init__(api_base or "https://api.ultravox.ai/api/", "ULTRAVOX_API_KEY", **kwargs)
 
     def _process_msgs(self, raw_msgs: list[dict[str, str]]):
         replaced_messages = []
