@@ -128,6 +128,16 @@ audio-bigbench.validation.v1:
 
 # Text-only versions
 
+text-bigbench: 
+  id: text-bigbench.validation.v1
+  metrics: [accuracy]
+text-bigbench.validation.v1: 
+  class: evals.elsuite.audio.eval:BigBenchAudio
+  args:
+    dataset: hf://fixie-ai/big_bench_audio?split=train
+    eval_completion_fn: gpt-4o
+    text_only: true
+
 transcript-transcribe:
   id: transcript-transcribe.test.v1
   metrics: [accuracy]
