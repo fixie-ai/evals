@@ -40,7 +40,6 @@ dependencies = [
     "seaborn",
     "snowflake-connector-python[pandas]",
     "soundfile",
-    "spacy-universal-sentence-encoder",
     "statsmodels",
     "termcolor",
     "tiktoken",
@@ -59,6 +58,7 @@ repository = "https://github.com/openai/evals"
 
 [project.optional-dependencies]
 formatters = ["black", "isort", "autoflake", "ruff"]
+extras = ["spacy-universal-sentence-encoder"]
 
 torch = ["torch"]
 
