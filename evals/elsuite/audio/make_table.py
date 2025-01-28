@@ -44,8 +44,9 @@ def main():
 
     df = extract_results(log_dir)
     pd.set_option("display.precision", 2)  # Adjust precision as needed
-    print(df)
-    df.to_csv(os.path.join(args.out_dir, "results.csv"), index=False)
+    if len(df):
+        print(df)
+        df.to_csv(os.path.join(args.out_dir, "results.csv"), index=False)
 
 
 if __name__ == "__main__":
