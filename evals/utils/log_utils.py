@@ -9,7 +9,12 @@ def get_final_results_from_dir(log_dir: Union[str, Path]) -> dict[Path, dict]:
     """
     final_results_dict = {}
     for path in Path(log_dir).glob("**/*.log"):
-        final_results = extract_final_results(path)
+        try:
+            final_results = extract_final_results(path)
+        except ValueError as e:
+            print(f"Could not extract final results from {path}")
+            print(e)
+            continue
         final_results_dict[path] = final_results
     return final_results_dict
 
