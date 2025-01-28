@@ -39,7 +39,7 @@ def main():
     parser = argparse.ArgumentParser()
     parser.add_argument("--log_dir", "-d", type=str, required=True)
     parser.add_argument("--out_dir", "-o", type=str, default="./outputs")
-    parser.add_argument("--silent", "-s", type="store_true")
+    parser.add_argument("--silent", "-s", action="store_true")
     args = parser.parse_args()
     log_dir = Path(args.log_dir)
 
