@@ -131,12 +131,18 @@ class GeminiSolverWav(GeminiSolver):
         # Add validation for audio message placement
         assert len(msgs) >= 1, "Must provide at least one message"
         last_msg_content = msgs[-1].content
-        assert isinstance(last_msg_content, list) and len(last_msg_content) == 2, (
-            "Last message must contain exactly two parts: text and audio"
+
+        # Validate message has exactly one text and one audio part
+        content_types = [part.get('type') for part in last_msg_content]
+        assert content_types.count('text') == content_types.count('audio_url') == 1, (
+            "Last message must contain exactly one text and one audio_url content"
         )
-        assert last_msg_content[1].get('type') == 'audio_url', (
-            "Last message must contain audio data"
-        )
+
+        # Make sure audio_url is the last part
+        if content_types[-1] != 'audio_url':
+            # Swap text and audio parts to ensure audio is last
+            text_idx, audio_idx = content_types.index('text'), content_types.index('audio_url')
+            last_msg_content[text_idx], last_msg_content[audio_idx] = last_msg_content[audio_idx], last_msg_content[text_idx]
 
         std_msgs = []
         for msg in msgs:

@@ -592,8 +592,10 @@ class AudioBenchCnCollegeListenMcq(MatchAudioTask):
         self.eval_completion_fn = evals.registry.Registry().make_completion_fn(eval_completion_fn)
 
     def _build_prompt(self, sample: Sample, text_only: bool = False):
-        input = sample["transcript"] if text_only else sample["audio"]
-        return build_messages(self.DEFAULT_PROMPT, self.TASK_PROMPT, input)
+        assert not text_only
+        input = sample["audio"]
+        task_prompt = f"{AUDIO_PLACEHOLDER} {sample['instruction']} {sample['choices']}"
+        return build_messages(self.DEFAULT_PROMPT, task_prompt, input)
 
     def _compute_metrics(self, sample: Sample, sampled: str):
         messages = [
@@ -621,9 +623,10 @@ class AudioBenchCnCollegeListenMcq(MatchAudioTask):
         except:
             score = 0
 
+        match = score == 1
         evals.record.record_match(
-            score, 
-            expected=sample["official_answer"], 
+            match, 
+            expected=sample["answer"], 
             sampled=sampled
         )
         return score

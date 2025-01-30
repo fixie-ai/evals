@@ -133,6 +133,7 @@ audio-bench-cn-college-listen-mcq.validation.v1:
   class: evals.elsuite.audio.eval:AudioBenchCnCollegeListenMcq
   args:
     dataset: hf://fixie-ai/cn_college_listen_mcq_test?split=test
+    eval_completion_fn: gpt-4o
     max_audio_duration: 140
 
 # Text-only versions
