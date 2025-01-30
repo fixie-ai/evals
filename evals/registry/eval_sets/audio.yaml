@@ -36,8 +36,6 @@ audio-core-translate:
     - audio-translate-covost-sv-SE_en
     - audio-translate-covost-tr_en
 
-
-
 transcript-core:
   evals:
     - transcript-transcribe
@@ -63,7 +61,9 @@ transcript-translate:
 
 audio-sqa:
   evals:
-    - audio-sqa-web-questions
+    - audio-boolq
+    - audio-ser
+    - audio-sqa-*.validation.v1
 
 transcript-sqa:
   evals:
