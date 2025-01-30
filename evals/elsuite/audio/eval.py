@@ -538,3 +538,99 @@ class BigBenchAudio(MatchAudioTask):
     def _compute_corpus_metrics(self):
         # Use the same pattern as Transcribe
         return {"accuracy": evals.metrics.get_accuracy(self._get_match_events())}
+    
+
+
+class AudioBenchCnCollegeListenMcq(MatchAudioTask):
+    AUDIOBENCH_SYSTEM_PROMPT = """
+    You are a helpful assistant.
+    """
+
+    AUDIOBENCH_USER_PROMPT = """\
+    [Reference Answer]
+    {expected_answer}
+    [Model Answer]
+    {generated_answer}
+    [Question]
+    {question}
+    [Task]
+    Rate the model's answer based on its alignment with the reference answer, focusing on accuracy and relevance to the reference provided. Please be critical on the details. If the model response is something like 'cannot decide', please rate as 0.
+    Criteria: Assess if the model's response mirrors the reference in terms of content, accuracy, and relevance.
+    Score0: The answer is refusing to give concrete results, providing something like 'cannot decide'.
+    Score0: The answer is completely misaligned, providing incorrect or irrelevant information compared to the reference.
+    Score1: The answer shows minimal alignment, often misunderstanding or providing irrelevant details unrelated to the reference.
+    Score2: The answer recognizes the topic but diverges significantly from the reference in accuracy or relevance.
+    Score3: The answer aligns with the reference generally but lacks detail or precise accuracy in some aspects.
+    Score4: The answer is mostly accurate and relevant, closely following the reference but could be clearer or more detailed.
+    Score5: The answer is highly accurate, detailed, and matches the reference answer perfectly, capturing its essence and detail.
+    Your response should be formatted as follows:
+    Explanation: (Provide a concise explanation of your rating, comparing the reference answer with the model's response. "The reference answer is [XXX], while the model's answer is [YYY]. I think ...")
+    Rating: (int)
+    """
+
+    AUDIOBENCH_USER_PROMPT_BINARY = """\
+    [Reference Answer]
+    {expected_answer}
+    [Model Answer]
+    {generated_answer}
+    [Question]
+    {question}
+    [Task]
+    Rate the model's answer based on its alignment with the reference answer, focusing on accuracy and relevance to the reference provided. Please be critical on the details.
+    Criteria: Assess if the model's response mirrors the reference in terms of content, accuracy, and relevance. Please give a score of 0 or 1. 
+    Score0: The answer is refusing to give concrete results, providing something like 'cannot decide'.
+    Score0: The answer is wrong, providing incorrect or irrelevant information compared to the reference. 
+    Score1: The answer is correct, capturing or covering the meaning from the reference.
+    Your response should be formatted as follows:
+    Explanation: (Provide a concise explanation of your rating, comparing the reference answer with the model's response. "The reference answer is [XXX], while the model's answer is [YYY]. I think ...")
+    Rating: (int)
+    """
+
+    def __init__(self, eval_completion_fn: CompletionFn, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        self.eval_completion_kwargs = {"max_tokens": 1024}
+        self.eval_completion_fn = evals.registry.Registry().make_completion_fn(eval_completion_fn)
+
+    def _build_prompt(self, sample: Sample, text_only: bool = False):
+        input = sample["transcript"] if text_only else sample["audio"]
+        return build_messages(self.DEFAULT_PROMPT, self.TASK_PROMPT, input)
+
+    def _compute_metrics(self, sample: Sample, sampled: str):
+        messages = [
+            {"role": "system", "content": self.AUDIOBENCH_SYSTEM_PROMPT},
+            {
+                "role": "user", 
+                "content": self.AUDIOBENCH_USER_PROMPT_BINARY.format(
+                    question=sample["instruction"] + "\n" + sample["choices"],
+                    generated_answer=sampled,
+                    expected_answer=sample["answer"]
+                )
+            }
+        ]
+
+        result = self.eval_completion_fn(
+            prompt=messages,
+            **self.eval_completion_kwargs
+        )
+        
+        rating_text = result.get_completions()[0].strip().upper()
+
+        assert rating_text is not None
+        try:
+            score = int(rating_text.split()[-1])
+        except:
+            score = 0
+
+        evals.record.record_match(
+            score, 
+            expected=sample["official_answer"], 
+            sampled=sampled
+        )
+        return score
+
+    def _compute_corpus_metrics(self):
+        # Use the same pattern as Transcribe
+        return {"accuracy": evals.metrics.get_accuracy(self._get_match_events())}
+    
+
+

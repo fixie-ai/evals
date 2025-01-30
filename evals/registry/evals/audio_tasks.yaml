@@ -126,6 +126,14 @@ audio-bigbench.validation.v1:
     eval_completion_fn: gpt-4o
     max_audio_duration: 65
 
+audio-bench-cn-college-listen-mcq:
+  id: audio-bench-cn-college-listen-mcq.validation.v1
+  metrics: [accuracy]
+audio-bench-cn-college-listen-mcq.validation.v1:
+  class: evals.elsuite.audio.eval:AudioBenchCnCollegeListenMcq
+  args:
+    dataset: hf://fixie-ai/cn_college_listen_mcq_test?split=test
+    max_audio_duration: 140
 
 # Text-only versions
 text-bigbench: 

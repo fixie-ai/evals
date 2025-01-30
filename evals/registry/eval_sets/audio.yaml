@@ -14,6 +14,7 @@ audio-core:
   evals:
     - audio-transcribe
     - audio-bigbench
+    - audio-bench-cn-college-listen-mcq
     - audio-translate-covost-zh-CN_en
     - audio-translate-covost-ru_en
     - audio-translate-covost-es_en
