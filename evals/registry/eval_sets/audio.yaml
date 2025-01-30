@@ -15,6 +15,9 @@ audio-core:
     - audio-transcribe
     - audio-bigbench
     - audio-bench-cn-college-listen-mcq
+    - audio-bench-dream-tts-mcq
+    - audio-bench-public-sg-speech-qa
+    - audio-slue-p2-sqa5
     - audio-translate-covost-zh-CN_en
     - audio-translate-covost-ru_en
     - audio-translate-covost-es_en
