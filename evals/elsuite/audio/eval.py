@@ -40,7 +40,7 @@ class AudioTask(evals.Eval):
         text_only: bool = False,
         temperature: float = 0.7,
         max_tokens: int = 4096,
-        max_audio_duration: int = 30,
+        max_audio_duration: int = 30, # If -1, no duration check
         *args,
         **kwargs,
     ):
@@ -69,7 +69,7 @@ class AudioTask(evals.Eval):
 
         Currently only filters out samples with audio longer than max_audio_duration.
         """
-        return get_audio_duration(sample["audio"]) < self.max_audio_duration
+        return get_audio_duration(sample["audio"]) < self.max_audio_duration or self.max_audio_duration == -1
 
     def run(self, recorder: RecorderBase):
         x = recorder.record_sampling
@@ -499,7 +499,7 @@ class BigBenchAudio(MatchAudioTask):
 
     def __init__(self, eval_completion_fn: CompletionFn, *args, **kwargs):
         super().__init__(*args, **kwargs)
-        self.eval_completion_kwargs = {"max_tokens": 500}
+        self.eval_completion_kwargs = {"max_tokens": 1024}
         self.eval_completion_fn = evals.registry.Registry().make_completion_fn(eval_completion_fn)
 
     def _build_prompt(self, sample: Sample, text_only: bool = False):
@@ -587,7 +587,9 @@ class AudioBenchTask(MatchAudioTask):
     def __init__(self, eval_completion_fn: CompletionFn, is_mcq: bool = False, *args, **kwargs):
         super().__init__(*args, **kwargs)
         self.is_mcq = is_mcq
-        self.eval_completion_kwargs = {"max_tokens": 1024}
+        print("args", args)
+        print("kwargs", kwargs)
+        self.eval_completion_kwargs = {"max_tokens": 500}
         self.eval_completion_fn = evals.registry.Registry().make_completion_fn(eval_completion_fn)
 
     def _build_prompt(self, sample: Sample, text_only: bool = False):
