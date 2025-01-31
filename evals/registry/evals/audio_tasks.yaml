@@ -124,8 +124,51 @@ audio-bigbench.validation.v1:
   args:
     dataset: hf://fixie-ai/big_bench_audio?split=train
     eval_completion_fn: gpt-4o
-    max_audio_duration: 65
+    max_audio_duration: -1
 
+audio-bench-cn-college-listen-mcq:
+  id: audio-bench-cn-college-listen-mcq.validation.v1
+  metrics: [accuracy]
+audio-bench-cn-college-listen-mcq.validation.v1:
+  class: evals.elsuite.audio.eval:AudioBenchTask
+  args:
+    dataset: hf://fixie-ai/cn_college_listen_mcq_test?split=test
+    eval_completion_fn: gpt-4o
+    max_audio_duration: -1
+    is_mcq: true
+
+audio-bench-dream-tts-mcq: 
+  id: audio-bench-dream-tts-mcq.validation.v1
+  metrics: [accuracy]
+audio-bench-dream-tts-mcq.validation.v1:
+  class: evals.elsuite.audio.eval:AudioBenchTask
+  args:
+    dataset: hf://fixie-ai/dream_tts_mcq_test?split=test
+    eval_completion_fn: gpt-4o
+    max_audio_duration: -1
+    is_mcq: true
+
+audio-bench-public-sg-speech-qa:
+  id: audio-bench-public-sg-speech-qa.validation.v1
+  metrics: [accuracy]
+audio-bench-public-sg-speech-qa.validation.v1:
+  class: evals.elsuite.audio.eval:AudioBenchTask
+  args:
+    dataset: hf://fixie-ai/public_sg_speech_qa_test?split=test
+    eval_completion_fn: gpt-4o
+    max_audio_duration: -1
+    is_mcq: false 
+
+audio-slue-p2-sqa5: 
+  id: audio-slue-p2-sqa5.validation.v1
+  metrics: [accuracy]
+audio-slue-p2-sqa5.validation.v1:
+  class: evals.elsuite.audio.eval:AudioBenchTask
+  args:
+    dataset: hf://fixie-ai/slue_p2_sqa5_test?split=test
+    eval_completion_fn: gpt-4o
+    max_audio_duration: -1
+    is_mcq: false 
 
 # Text-only versions
 text-bigbench: 

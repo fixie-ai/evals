@@ -75,6 +75,19 @@ generation/whisper/ultravox-8b:
           extra_options:
             temperature: 1
 
+
+generation/whisper/llama-3-8b:
+  class: evals.solvers.providers.openai.whisper_solver:WhisperCascadedSolver
+  args:
+    solver:
+      class: evals.solvers.providers.groq.groq_solver:GroqSolver
+      args:
+        completion_fn_options:
+          model: llama3-8b-8192
+          extra_options:
+            temperature: 0
+
+
 generation/whisper/gpu-ultravox-dev:
   class: evals.solvers.providers.openai.whisper_solver:WhisperCascadedSolver
   args:
