@@ -587,8 +587,6 @@ class AudioBenchTask(MatchAudioTask):
     def __init__(self, eval_completion_fn: CompletionFn, is_mcq: bool = False, *args, **kwargs):
         super().__init__(*args, **kwargs)
         self.is_mcq = is_mcq
-        print("args", args)
-        print("kwargs", kwargs)
         self.eval_completion_kwargs = {"max_tokens": 500}
         self.eval_completion_fn = evals.registry.Registry().make_completion_fn(eval_completion_fn)
 

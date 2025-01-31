@@ -148,7 +148,6 @@ class Registry:
             fireworks_api_key = os.environ.get("FIREWORKS_API_KEY")
             if not fireworks_api_key:
                 raise ValueError("FIREWORKS_API_KEY environment variable required for Fireworks models")
-            print(f"Using Fireworks model: {name}")
             return OpenAIChatCompletionFn(
                 model=name,
                 n_ctx=n_ctx,
