@@ -14,6 +14,9 @@ audio-core:
   evals:
     - audio-transcribe
     - audio-bigbench
+    - audio-ser
+    - audio-boolq
+    - audio-sqa-web-questions
     - audio-translate-covost-zh-CN_en
     - audio-translate-covost-ru_en
     - audio-translate-covost-es_en
@@ -35,8 +38,6 @@ audio-core-translate:
     - audio-translate-covost-zh-CN_en
     - audio-translate-covost-sv-SE_en
     - audio-translate-covost-tr_en
-
-
 
 transcript-core:
   evals:
