@@ -499,7 +499,7 @@ class BigBenchAudio(MatchAudioTask):
 
     def __init__(self, eval_completion_fn: CompletionFn, *args, **kwargs):
         super().__init__(*args, **kwargs)
-        self.eval_completion_kwargs = {"max_tokens": 1024}
+        self.eval_completion_kwargs = {"max_tokens": 500}
         self.eval_completion_fn = evals.registry.Registry().make_completion_fn(eval_completion_fn)
 
     def _build_prompt(self, sample: Sample, text_only: bool = False):

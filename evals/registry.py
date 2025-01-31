@@ -143,6 +143,20 @@ class Registry:
 
         n_ctx = n_ctx_from_model_name(name)
 
+        # Handle Fireworks models
+        if name.startswith("accounts/fireworks/models/"):
+            fireworks_api_key = os.environ.get("FIREWORKS_API_KEY")
+            if not fireworks_api_key:
+                raise ValueError("FIREWORKS_API_KEY environment variable required for Fireworks models")
+            print(f"Using Fireworks model: {name}")
+            return OpenAIChatCompletionFn(
+                model=name,
+                n_ctx=n_ctx,
+                api_key=fireworks_api_key,
+                api_base="https://api.fireworks.ai/inference/v1",
+                **kwargs
+            )
+
         if is_chat_model(name):
             return OpenAIChatCompletionFn(model=name, n_ctx=n_ctx, **kwargs)
         elif name in self.api_model_ids:
