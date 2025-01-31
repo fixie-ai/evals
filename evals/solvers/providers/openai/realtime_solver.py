@@ -83,7 +83,7 @@ class RealtimeSolver(Solver):
         # anytime we have audio content.
         url = f"{self._api_base}?model={self.model}"
         headers = {"Authorization": f"Bearer {self._api_key}", "OpenAI-Beta": "realtime=v1"}
-        async with websockets.connect(url, extra_headers=headers) as websocket:
+        async with websockets.connect(url, additional_headers=headers) as websocket:
             system_message = None
             modalities = set(["text"])
             for message in messages:
@@ -96,7 +96,6 @@ class RealtimeSolver(Solver):
                         system_message = text
                     else:
                         content.append({"type": "input_text", "text": text})
-                        continue
                 elif message_content_type is list:
                     for item in message["content"]:
                         if item["type"] == "text":
@@ -107,11 +106,13 @@ class RealtimeSolver(Solver):
                             base64_pcm = _pcm_to_base64(pcm_bytes)
                             content.append({"type": "input_audio", "audio": base64_pcm})
                             modalities.add("audio")
-                event = {
-                    "type": "conversation.item.create",
-                    "item": {"type": "message", "role": role, "content": content},
-                }
-                await websocket.send(json.dumps(event))
+                if content:  # Only send if we have content
+                    event = {
+                        "type": "conversation.item.create",
+                        "item": {"type": "message", "role": role, "content": content},
+                    }
+                    await websocket.send(json.dumps(event))
+                        
             create_response = {
                 "type": "response.create",
                 "response": {
@@ -121,9 +122,10 @@ class RealtimeSolver(Solver):
             }
             await websocket.send(json.dumps(create_response))
             while True:
-                response_json = await websocket.recv()
-                response = json.loads(response_json)
-                if response["type"] == "response.done":
-                    break
-
-        return response["response"]
+                try:
+                    response_json = await websocket.recv()
+                    response = json.loads(response_json)
+                    if response["type"] == "response.done":
+                        return response["response"]
+                except websockets.exceptions.ConnectionClosed as e:
+                    raise RuntimeError(f"WebSocket connection closed unexpectedly: {e}")
