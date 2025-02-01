@@ -8,7 +8,7 @@ from typing import Any, Dict, Optional, Union
 import librosa
 import numpy as np
 import websockets
-
+import logging
 from evals.solvers.solver import Solver, SolverResult
 from evals.solvers.utils import data_url_to_wav
 from evals.task_state import TaskState
@@ -81,51 +81,65 @@ class RealtimeSolver(Solver):
         # When supplying audio input, the API will hang unless you ask for audio output,
         # even if you don't plan to use the audio output. So we ask for audio output
         # anytime we have audio content.
-        url = f"{self._api_base}?model={self.model}"
-        headers = {"Authorization": f"Bearer {self._api_key}", "OpenAI-Beta": "realtime=v1"}
-        async with websockets.connect(url, additional_headers=headers) as websocket:
-            system_message = None
-            modalities = set(["text"])
-            for message in messages:
-                message_content_type = type(message["content"])
-                role = message["role"]
-                content = []
-                if message_content_type is str:
-                    text = message["content"]
-                    if role == "system":
-                        system_message = text
-                    else:
-                        content.append({"type": "input_text", "text": text})
-                elif message_content_type is list:
-                    for item in message["content"]:
-                        if item["type"] == "text":
-                            content.append({"type": "input_text", "text": item["text"]})
-                        elif item["type"] == "audio_url":
-                            wav_bytes = data_url_to_wav(item["audio_url"]["url"])
-                            pcm_bytes = _wav_to_24k_pcm(wav_bytes)
-                            base64_pcm = _pcm_to_base64(pcm_bytes)
-                            content.append({"type": "input_audio", "audio": base64_pcm})
-                            modalities.add("audio")
-                if content:  # Only send if we have content
-                    event = {
-                        "type": "conversation.item.create",
-                        "item": {"type": "message", "role": role, "content": content},
+        max_retries = 3
+        retry_delay = 1
+        for attempt in range(max_retries):
+            try:
+                url = f"{self._api_base}?model={self.model}"
+                headers = {"Authorization": f"Bearer {self._api_key}", "OpenAI-Beta": "realtime=v1"}
+                async with websockets.connect(url, additional_headers=headers) as websocket:
+                    system_message = None
+                    modalities = set(["text"])
+                    for message in messages:
+                        message_content_type = type(message["content"])
+                        role = message["role"]
+                        content = []
+                        if message_content_type is str:
+                            text = message["content"]
+                            if role == "system":
+                                system_message = text
+                            else:
+                                content.append({"type": "input_text", "text": text})
+                                continue
+                        elif message_content_type is list:
+                            for item in message["content"]:
+                                if item["type"] == "text":
+                                    content.append({"type": "input_text", "text": item["text"]})
+                                elif item["type"] == "audio_url":
+                                    wav_bytes = data_url_to_wav(item["audio_url"]["url"])
+                                    pcm_bytes = _wav_to_24k_pcm(wav_bytes)
+                                    base64_pcm = _pcm_to_base64(pcm_bytes)
+                                    content.append({"type": "input_audio", "audio": base64_pcm})
+                                    modalities.add("audio")
+                        if content:  # Only send if we have content
+                            event = {
+                                "type": "conversation.item.create",
+                                "item": {"type": "message", "role": role, "content": content},
+                            }
+                            await websocket.send(json.dumps(event))
+                                
+                    create_response = {
+                        "type": "response.create",
+                        "response": {
+                            "instructions": system_message,
+                            "modalities": list(modalities),
+                        },
                     }
-                    await websocket.send(json.dumps(event))
-                        
-            create_response = {
-                "type": "response.create",
-                "response": {
-                    "instructions": system_message,
-                    "modalities": list(modalities),
-                },
-            }
-            await websocket.send(json.dumps(create_response))
-            while True:
-                try:
-                    response_json = await websocket.recv()
-                    response = json.loads(response_json)
-                    if response["type"] == "response.done":
-                        return response["response"]
-                except websockets.exceptions.ConnectionClosed as e:
-                    raise RuntimeError(f"WebSocket connection closed unexpectedly: {e}")
+                    await websocket.send(json.dumps(create_response))
+                    while True:
+                        try:
+                            response_json = await websocket.recv()
+                            response = json.loads(response_json)
+                            if response["type"] == "response.done":
+                                return response["response"]
+                        except websockets.exceptions.ConnectionClosed as e:
+                            raise RuntimeError(f"WebSocket connection closed unexpectedly: {e}")
+
+            except Exception as e:
+                if attempt < max_retries - 1:
+                    await asyncio.sleep(retry_delay)
+                    retry_delay *= 2
+                    attempt += 1
+                    logging.warning(f"Failed to connect to the API after {attempt} attempts: {e}")
+                else:
+                    raise RuntimeError(f"Failed to connect to the API after {max_retries} attempts: {e}")
