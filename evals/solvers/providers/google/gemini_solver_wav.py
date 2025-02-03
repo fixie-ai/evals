@@ -1,45 +1,22 @@
-import copy
 import os
 from dataclasses import asdict, dataclass
-from typing import Any, Dict, Union
 
 import google.api_core.exceptions
 import google.generativeai as genai
 from google.generativeai.client import get_default_generative_client
 
-from evals.record import record_sampling
+import numpy as np
+
 from evals.solvers.solver import Solver, SolverResult
+from evals.solvers.utils import data_url_to_wav
 from evals.task_state import Message, TaskState
 from evals.utils.api_utils import create_retrying
+
+from evals.solvers.providers.google.gemini_solver import SAFETY_SETTINGS, GEMINI_RETRY_EXCEPTIONS, GeminiSolver
 
 # Load API key from environment variable
 API_KEY = os.environ.get("GEMINI_API_KEY")
 genai.configure(api_key=API_KEY)
-
-SAFETY_SETTINGS = [
-    {
-        "category": "HARM_CATEGORY_HARASSMENT",
-        "threshold": "BLOCK_NONE",
-    },
-    {
-        "category": "HARM_CATEGORY_HATE_SPEECH",
-        "threshold": "BLOCK_NONE",
-    },
-    {
-        "category": "HARM_CATEGORY_SEXUALLY_EXPLICIT",
-        "threshold": "BLOCK_NONE",
-    },
-    {
-        "category": "HARM_CATEGORY_DANGEROUS_CONTENT",
-        "threshold": "BLOCK_NONE",
-    },
-]
-GEMINI_RETRY_EXCEPTIONS = (
-    google.api_core.exceptions.RetryError,
-    google.api_core.exceptions.TooManyRequests,
-    google.api_core.exceptions.ResourceExhausted,
-)
-
 
 # TODO: Could we just use google's own types?
 # e.g. google.generativeai.types.content_types.ContentType
@@ -61,51 +38,34 @@ class GoogleMessage:
         }
         gmsg = GoogleMessage(
             role=to_google_role.get(msg.role, msg.role),
-            parts=[msg.content],
+            parts=[msg.content] if isinstance(msg.content, str) else msg.content,
         )
         assert gmsg.role in valid_roles, f"Invalid role: {gmsg.role}"
         return gmsg
+    
+    
 
-
-class GeminiSolver(Solver):
+class GeminiSolverWav(GeminiSolver):
     """
     A solver class that uses Google's Gemini API to generate responses.
     """
-
-    def __init__(
-        self,
-        model_name: str,
-        generation_config: Dict[str, Any] = {},
-        postprocessors: list[str] = [],
-        registry: Any = None,
-    ):
-        super().__init__(postprocessors=postprocessors)
-
-        self.model_name = model_name
-        self.gen_config = genai.GenerationConfig(**generation_config)
-
-        # We manually define the client. This is normally defined automatically when calling
-        # the API, but it isn't thread-safe, so we anticipate its creation here
-        self.glm_client = get_default_generative_client()
-
-    @property
-    def model(self) -> str:
-        return self.model_name
 
     def _solve(
         self,
         task_state: TaskState,
         **kwargs,
     ) -> SolverResult:
-        msgs = [
-            Message(role="user", content=task_state.task_description),
-        ] + task_state.messages
+        # Uncomment if you want to add a system message. 
+        # Gemini doesn't have a system role, so we will eventually convert this to a user message. 
+        # It seems to degrade performance on some models. 
+        # msgs = [
+        #     Message(role="system", content=task_state.task_description),
+        # ] + task_state.messages
+        msgs = task_state.messages
         gmsgs = self._convert_msgs_to_google_format(msgs)
-        gmsgs = [msg.to_dict() for msg in gmsgs]
         try:
             glm_model = genai.GenerativeModel(model_name=self.model_name)
             glm_model._client = self.glm_client
-
             gen_content_resp = create_retrying(
                 glm_model.generate_content,
                 retry_exceptions=GEMINI_RETRY_EXCEPTIONS,
@@ -115,6 +75,7 @@ class GeminiSolver(Solver):
                     "safety_settings": SAFETY_SETTINGS,
                 },
             )
+            
             if gen_content_resp.prompt_feedback.block_reason:
                 # Blocked by safety filters
                 solver_result = SolverResult(
@@ -152,55 +113,63 @@ class GeminiSolver(Solver):
     @staticmethod
     def _convert_msgs_to_google_format(msgs: list[Message]) -> list[GoogleMessage]:
         """
-        Gemini API requires that the message list has
-        - Roles as 'user' or 'model'
-        - Alternating 'user' and 'model' messages
-        - Ends with a 'user' message
+        Convert messages to Gemini API format and process audio data.
+        Currently only supports a single audio message at the end of the conversation.
+
+        Args:
+            msgs: List of Message objects. The last message must contain audio data.
+
+        Raises:
+            AssertionError: If messages after audio are found or if audio format is invalid.
+
+        Example msgs:
+        [Message(role='user', content='You are a helpful assistant.'), 
+         Message(role='user', 
+                 content=[{'type': 'text', 'text': 'Please translate...'}, 
+                         {'type': 'audio_url', 'audio_url': {'url': 'data:audio/x-wav;base64,...'}}])]
         """
-        # Enforce valid roles
-        gmsgs = []
+        # Add validation for audio message placement
+        assert len(msgs) >= 1, "Must provide at least one message"
+        last_msg_content = msgs[-1].content
+
+        # Validate message has exactly one text and one audio part
+        content_types = [part.get('type') for part in last_msg_content]
+        assert content_types.count('text') == content_types.count('audio_url') == 1, (
+            "Last message must contain exactly one text and one audio_url content"
+        )
+
+        # Make sure audio_url is the last part
+        if content_types[-1] != 'audio_url':
+            # Swap text and audio parts to ensure audio is last
+            text_idx, audio_idx = content_types.index('text'), content_types.index('audio_url')
+            last_msg_content[text_idx], last_msg_content[audio_idx] = last_msg_content[audio_idx], last_msg_content[text_idx]
+
+        std_msgs = []
         for msg in msgs:
             gmsg = GoogleMessage.from_evals_message(msg)
-            gmsgs.append(gmsg)
             assert gmsg.role in {"user", "model"}, f"Invalid role: {gmsg.role}"
-
-        # Enforce alternating messages
-        # e.g. [user1, user2, model1, user3] -> [user12, model1, user3]
-        std_msgs = []
-        for msg in gmsgs:
-            if len(std_msgs) > 0 and msg.role == std_msgs[-1].role:
-                # Merge consecutive messages from the same role
-                std_msgs[-1].parts.extend(msg.parts)
-                # The API seems to expect a single-element list of strings (???) so we join the
-                # parts into a list containing a single string
-                std_msgs[-1].parts = ["\n".join(std_msgs[-1].parts)]
+            
+            if std_msgs and gmsg.role == std_msgs[-1].role:
+                # Combine text content
+                if isinstance(gmsg.parts[0], str):
+                    std_msgs[-1].parts = ["\n".join(std_msgs[-1].parts + gmsg.parts)]
+                # Combine text and preserve audio data
+                elif isinstance(gmsg.parts[0], dict):
+                    std_msgs[-1].parts = [{
+                        "type": "text",
+                        "text": std_msgs[-1].parts[0] + "\n" + gmsg.parts[0]["text"]
+                    }, gmsg.parts[1]]
             else:
-                # Proceed as normal
-                std_msgs.append(msg)
+                std_msgs.append(gmsg)
 
-        # Enforce last message is from the user
-        assert std_msgs[-1].role == "user", "Last message must be from the user"
-        return std_msgs
+        # Process final audio message
+        last_msg = std_msgs[-1].parts
+        audio_part = last_msg[1]
+        
+        # Convert audio to wav format
+        wav_data = {
+            "mime_type": "audio/wav",
+            "data": data_url_to_wav(audio_part["audio_url"]["url"])
+        }
 
-    @property
-    def name(self) -> str:
-        return self.model
-
-    @property
-    def model_version(self) -> Union[str, dict]:
-        return self.model
-
-    def __deepcopy__(self, memo):
-        """
-        Deepcopy everything except for self.glm_client, which is instead shared across all copies
-        """
-        cls = self.__class__
-        result = cls.__new__(cls)
-
-        memo[id(self)] = result
-        for k, v in self.__dict__.items():
-            if k != "glm_client":
-                setattr(result, k, copy.deepcopy(v, memo))
-
-        result.glm_client = self.glm_client
-        return result
+        return [last_msg[0]['text'], wav_data]

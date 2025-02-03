@@ -9,10 +9,16 @@ audio:
 transcript:
   evals:
     - transcript-*.test
+    
 
 audio-core:
   evals:
     - audio-transcribe
+    - audio-bigbench
+    - audio-bench-cn-college-listen-mcq
+    - audio-bench-dream-tts-mcq
+    - audio-bench-public-sg-speech-qa
+    - audio-slue-p2-sqa5
     - audio-translate-covost-zh-CN_en
     - audio-translate-covost-ru_en
     - audio-translate-covost-es_en
@@ -22,24 +28,26 @@ audio-core:
     - audio-translate-covost-tr_en
     - audio-translate-covost-sv-SE_en
 
-audio-translate-core: 
-  evals: 
+audio-core-translate: 
+  evals:
     - audio-translate-covost-en_de
     - audio-translate-covost-en_ca
     - audio-translate-covost-en_ar
     - audio-translate-covost-en_tr
     - audio-translate-covost-en_sv-SE
     - audio-translate-covost-ru_en
-    - audio-translate-covost-es_en
+    - audio-translate-covost-es_en 
     - audio-translate-covost-zh-CN_en
     - audio-translate-covost-sv-SE_en
     - audio-translate-covost-tr_en
 
-
 transcript-core:
   evals:
     - transcript-transcribe
-    - transcript-translate-covost-en_de
+    - text-bigbench
+    - transcript-translate-covost-zh-CN_en
+    - transcript-translate-covost-ru_en
+    - transcript-translate-covost-es_en
     - transcript-translate-covost-en_ca
     - transcript-translate-covost-en_ar
     - transcript-translate-covost-en_tr
@@ -63,6 +71,11 @@ transcript-translate:
 audio-sqa:
   evals:
     - audio-sqa-web-questions
+    - audio-bigbench
+    - audio-bench-cn-college-listen-mcq
+    - audio-bench-dream-tts-mcq
+    - audio-bench-public-sg-speech-qa
+    - audio-slue-p2-sqa5
 
 transcript-sqa:
   evals:

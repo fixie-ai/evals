@@ -9,6 +9,8 @@ generation/direct/gemini-pro:
   class: evals.solvers.providers.google.gemini_solver:GeminiSolver
   args:
     model_name: gemini-pro
+    generation_config:
+      temperature: 0
 
 generation/cot/gemini-pro:
   class: evals.solvers.nested.cot_solver:CoTSolver
@@ -17,7 +19,49 @@ generation/cot/gemini-pro:
       class: evals.solvers.providers.google.gemini_solver:GeminiSolver
       args:
         model_name: gemini-pro
+        generation_config:
+          temperature: 0
     extract_solver:
       class: evals.solvers.providers.google.gemini_solver:GeminiSolver
       args:
         model_name: gemini-pro
+        generation_config:
+          temperature: 0
+
+generation/direct/gemini-1.5-flash-wav:
+  class: evals.solvers.providers.google.gemini_solver_wav:GeminiSolverWav
+  args:
+    model_name: gemini-1.5-flash
+    generation_config:
+      temperature: 0
+
+
+generation/direct/gemini-1.5-pro-wav:
+  class: evals.solvers.providers.google.gemini_solver_wav:GeminiSolverWav
+  args:
+    model_name: gemini-1.5-pro
+    generation_config:
+      temperature: 0
+
+generation/direct/gemini-1.5-flash-002-wav:
+  class: evals.solvers.providers.google.gemini_solver_wav:GeminiSolverWav
+  args:
+    model_name: gemini-1.5-flash-002
+    generation_config:
+      temperature: 0
+
+
+generation/direct/gemini-1.5-pro-002-wav:
+  class: evals.solvers.providers.google.gemini_solver_wav:GeminiSolverWav
+  args:
+    model_name: gemini-1.5-pro-002
+    generation_config:
+      temperature: 0
+
+generation/direct/gemini-1.5-flash-8b-wav:
+  class: evals.solvers.providers.google.gemini_solver_wav:GeminiSolverWav
+  args:
+    model_name: gemini-1.5-flash-8b
+    generation_config:
+      temperature: 0  
+    

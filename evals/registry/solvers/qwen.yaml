@@ -1,0 +1,10 @@
+generation/gpu/qwen-audio-7b-instruct:
+  class: evals.solvers.providers.qwen.qwen2audio_local_gpu_solver:Qwen2AudioLocalGPUSolver
+  args:
+    model_name: Qwen/Qwen2-Audio-7B-Instruct
+
+
+generation/gpu/qwen-audio-7b:
+  class: evals.solvers.providers.qwen.qwen2audio_local_gpu_solver:Qwen2AudioLocalGPUSolver
+  args:
+    model_name: Qwen/Qwen2-Audio-7B

@@ -39,13 +39,16 @@ def main():
     parser = argparse.ArgumentParser()
     parser.add_argument("--log_dir", "-d", type=str, required=True)
     parser.add_argument("--out_dir", "-o", type=str, default="./outputs")
+    parser.add_argument("--silent", "-s", action="store_true")
     args = parser.parse_args()
     log_dir = Path(args.log_dir)
 
     df = extract_results(log_dir)
     pd.set_option("display.precision", 2)  # Adjust precision as needed
-    print(df)
-    df.to_csv(os.path.join(args.out_dir, "results.csv"), index=False)
+    if not args.silent:
+        print(df)
+    if len(df):
+        df.to_csv(os.path.join(args.out_dir, "results.csv"), index=False)
 
 
 if __name__ == "__main__":
