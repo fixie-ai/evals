@@ -37,7 +37,6 @@ class OpenAISolver(Solver):
         role_to_prefix: Dict = ROLE_TO_PREFIX,
         postprocessors: list[str] = [],
         registry: Any = None,
-        max_retries: int = 3,
     ):
         super().__init__(postprocessors=postprocessors)
         self.valid_answers = valid_answers
@@ -46,7 +45,6 @@ class OpenAISolver(Solver):
         self.fixed_start = fixed_start
         self.continue_last_assistant_msg = continue_last_assistant_msg
         self.role_to_prefix = role_to_prefix
-        self.max_retries = max_retries
 
         if "model" not in completion_fn_options:
             raise ValueError("OpenAISolver requires a model to be specified.")
@@ -168,7 +166,6 @@ class OpenAISolver(Solver):
                     raw_output=completion_output,
                     raw_completion_result=completion_result,
                 )
-
         except self._completion_exception as e:
             solver_result = self._handle_completion_exception(e)
 

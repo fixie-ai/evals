@@ -26,5 +26,4 @@ generation/direct/llama-33-70b-instruct:
       extra_options:
         temperature: 0
         max_tokens: 512
-
         
