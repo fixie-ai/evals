@@ -9,7 +9,7 @@ audio:
 transcript:
   evals:
     - transcript-*.test
-    
+
 audio-core:
   evals:
     - audio-transcribe
