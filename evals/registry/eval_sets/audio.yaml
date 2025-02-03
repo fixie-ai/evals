@@ -40,8 +40,6 @@ audio-core-translate:
     - audio-translate-covost-sv-SE_en
     - audio-translate-covost-tr_en
 
-
-
 transcript-core:
   evals:
     - transcript-transcribe
@@ -68,6 +66,11 @@ transcript-translate:
 audio-sqa:
   evals:
     - audio-sqa-web-questions
+    - audio-bigbench
+    - audio-bench-cn-college-listen-mcq
+    - audio-bench-dream-tts-mcq
+    - audio-bench-public-sg-speech-qa
+    - audio-slue-p2-sqa5
 
 transcript-sqa:
   evals:
