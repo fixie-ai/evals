@@ -24,7 +24,6 @@ audio-core:
 
 audio-translate-core: 
   evals: 
-    - audio-transcribe
     - audio-translate-covost-en_de
     - audio-translate-covost-en_ca
     - audio-translate-covost-en_ar

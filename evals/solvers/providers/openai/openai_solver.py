@@ -1,8 +1,6 @@
 import logging
 from typing import Any, Dict, Optional, Union
-import time
 from tenacity import retry, stop_after_attempt, wait_exponential, retry_if_exception_type
-from functools import wraps
 
 import tiktoken
 from openai import BadRequestError, RateLimitError, APITimeoutError, APIError
@@ -20,28 +18,6 @@ ROLE_TO_PREFIX = {
     "assistant": "Assistant: ",
     "spacer": "-----",
 }
-
-def retry_on_error(max_retries=3, base_delay=1):
-    """Decorator that implements retry logic for API calls"""
-    def decorator(func):
-        @wraps(func)
-        def wrapper(*args, **kwargs):
-            for attempt in range(max_retries):
-                try:
-                    return func(*args, **kwargs)
-                except (RateLimitError, APITimeoutError, APIError) as e:
-                    if attempt == max_retries - 1:  # Last attempt
-                        raise  # Re-raise the last exception
-                    
-                    delay = base_delay * (2 ** attempt)  # Exponential backoff
-                    logging.warning(
-                        f"API call failed with error: {str(e)}. "
-                        f"Retrying in {delay} seconds... (Attempt {attempt + 1}/{max_retries})"
-                    )
-                    time.sleep(delay)
-            return func(*args, **kwargs)  # Final attempt
-        return wrapper
-    return decorator
 
 class OpenAISolver(Solver):
     """
@@ -138,9 +114,20 @@ class OpenAISolver(Solver):
         # by default, None, which points to the default API Key which is "OPENAI_API_KEY"
         return None
 
-    @retry_on_error(max_retries=3)
+    @retry(
+        retry=retry_if_exception_type((Exception)),
+        stop=stop_after_attempt(3),
+        wait=wait_exponential(multiplier=1, min=1, max=10),
+        reraise=True,
+        before_sleep=lambda retry_state: logging.warning(
+            f"API request failed with error: {retry_state.outcome.exception()}. "
+            f"Retrying in {retry_state.next_action.sleep} seconds... "
+            f"(Attempt {retry_state.attempt_number}/3)"
+        )
+    )
     def _make_api_request(self, msgs, is_chat_model: bool, **kwargs) -> tuple[Any, str]:
         """Make API request and return both the raw result and processed completion"""
+            
         if is_chat_model:
             completion_result = self.completion_fn(prompt=msgs, **kwargs)
             completion_output = completion_result.get_completions()[0]

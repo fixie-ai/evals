@@ -17,3 +17,14 @@ generation/direct/llama-31-8b-instruct:
       extra_options:
         temperature: 0
         max_tokens: 512
+
+generation/direct/llama-33-70b-instruct:
+  class: evals.solvers.providers.fireworks.fireworks_solver:FireworksSolver
+  args:
+    completion_fn_options:
+      model: accounts/fixie/deployedModels/llama-v3p3-70b-instruct-6b17fcd9
+      extra_options:
+        temperature: 0
+        max_tokens: 512
+
+        
