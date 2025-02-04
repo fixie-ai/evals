@@ -8,10 +8,11 @@ from typing import Any, Dict, Optional, Union
 import librosa
 import numpy as np
 import websockets
-
+import logging
 from evals.solvers.solver import Solver, SolverResult
 from evals.solvers.utils import data_url_to_wav
 from evals.task_state import TaskState
+from tenacity import retry, stop_after_attempt, wait_exponential, retry_if_exception_type
 
 
 def _wav_to_24k_pcm(wav_bytes):
@@ -77,13 +78,19 @@ class RealtimeSolver(Solver):
         solver_result = SolverResult(completion_output, raw_completion_result=completion_result)
         return solver_result
 
+    @retry(
+        stop=stop_after_attempt(3),
+        wait=wait_exponential(multiplier=1, min=1, max=4),
+        retry=retry_if_exception_type(Exception),
+        reraise=True,
+        before_sleep=lambda retry_state: logging.warning(
+            f"Attempt {retry_state.attempt_number} failed with error: {retry_state.outcome.exception()}. Retrying..."
+        ),
+    )
     async def _ws_completion(self, messages):
-        # When supplying audio input, the API will hang unless you ask for audio output,
-        # even if you don't plan to use the audio output. So we ask for audio output
-        # anytime we have audio content.
         url = f"{self._api_base}?model={self.model}"
         headers = {"Authorization": f"Bearer {self._api_key}", "OpenAI-Beta": "realtime=v1"}
-        async with websockets.connect(url, extra_headers=headers) as websocket:
+        async with websockets.connect(url, additional_headers=headers) as websocket:
             system_message = None
             modalities = set(["text"])
             for message in messages:
@@ -107,11 +114,12 @@ class RealtimeSolver(Solver):
                             base64_pcm = _pcm_to_base64(pcm_bytes)
                             content.append({"type": "input_audio", "audio": base64_pcm})
                             modalities.add("audio")
-                event = {
-                    "type": "conversation.item.create",
-                    "item": {"type": "message", "role": role, "content": content},
-                }
-                await websocket.send(json.dumps(event))
+                if content:  # Only send if we have content
+                    event = {
+                        "type": "conversation.item.create",
+                        "item": {"type": "message", "role": role, "content": content},
+                    }
+                    await websocket.send(json.dumps(event))
             create_response = {
                 "type": "response.create",
                 "response": {
@@ -121,9 +129,10 @@ class RealtimeSolver(Solver):
             }
             await websocket.send(json.dumps(create_response))
             while True:
-                response_json = await websocket.recv()
-                response = json.loads(response_json)
-                if response["type"] == "response.done":
-                    break
-
-        return response["response"]
+                try:
+                    response_json = await websocket.recv()
+                    response = json.loads(response_json)
+                    if response["type"] == "response.done":
+                        return response["response"]
+                except websockets.exceptions.ConnectionClosed as e:
+                    raise RuntimeError(f"WebSocket connection closed unexpectedly: {e}")
