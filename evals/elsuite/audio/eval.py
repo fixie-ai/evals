@@ -108,16 +108,20 @@ class AudioTask(evals.Eval):
             f"Retrying in {retry_state.next_action.sleep} seconds... "
             f"(Attempt {retry_state.attempt_number}/3)"
         ),
-        reraise=True
+        reraise=False
     )
     def _do_completion(self, prompt, **kwargs):
-        result = self.completion_fn(
-            prompt=prompt,
-            temperature=self.temperature,
-            max_tokens=self.max_tokens,
-            **kwargs,
-        )
-        return result.get_completions()[0]
+        try:
+            result = self.completion_fn(
+                prompt=prompt,
+                temperature=self.temperature,
+                max_tokens=self.max_tokens,
+                **kwargs,
+            )
+            return result.get_completions()[0]
+        except Exception as e:
+            # This will only run after all retries have failed
+            return f"Error: {str(e)}"
 
 
 class MatchAudioTask(AudioTask):
