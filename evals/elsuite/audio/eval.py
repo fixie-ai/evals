@@ -7,6 +7,8 @@ from typing import Any, Dict, List, Optional, Union
 import jiwer
 from datasets import Audio
 from sacrebleu.metrics.bleu import BLEU
+from tenacity import retry, stop_after_attempt, wait_exponential, retry_if_exception_type
+
 
 import evals
 import evals.metrics
@@ -97,23 +99,25 @@ class AudioTask(evals.Eval):
     def _get_completion_kwargs(self, sample: Sample):
         return {}
 
+    @retry(
+        stop=stop_after_attempt(3),
+        wait=wait_exponential(multiplier=1, min=1, max=10),
+        retry=retry_if_exception_type(Exception),
+        before_sleep=lambda retry_state: logging.warning(
+            f"API request failed with error: {retry_state.outcome.exception()}. "
+            f"Retrying in {retry_state.next_action.sleep} seconds... "
+            f"(Attempt {retry_state.attempt_number}/3)"
+        ),
+        reraise=True
+    )
     def _do_completion(self, prompt, **kwargs):
-        try:
-            result = self.completion_fn(
-                prompt=prompt,
-                temperature=self.temperature,
-                max_tokens=self.max_tokens,
-                **kwargs,
-            )
-            sampled = result.get_completions()[0]
-        except Exception as e:
-            for m in prompt:
-                redact_audio_content(m["content"])
-            logging.info("Sampling failed!")
-            logging.info(f"Prompt: {prompt}")
-            logging.info(f"Error: {str(e)}")
-            sampled = "ERROR: " + str(e)
-        return sampled
+        result = self.completion_fn(
+            prompt=prompt,
+            temperature=self.temperature,
+            max_tokens=self.max_tokens,
+            **kwargs,
+        )
+        return result.get_completions()[0]
 
 
 class MatchAudioTask(AudioTask):
