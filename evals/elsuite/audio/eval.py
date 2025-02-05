@@ -110,17 +110,24 @@ class AudioTask(evals.Eval):
         ),
         reraise=False
     )
+    def _do_completion_with_retries(self, prompt, **kwargs):
+        result = self.completion_fn(
+            prompt=prompt,
+            temperature=self.temperature,
+            max_tokens=self.max_tokens,
+            **kwargs,
+        )
+        return result.get_completions()[0]
+
     def _do_completion(self, prompt, **kwargs):
         try:
-            result = self.completion_fn(
-                prompt=prompt,
-                temperature=self.temperature,
-                max_tokens=self.max_tokens,
-                **kwargs,
-            )
-            return result.get_completions()[0]
+            return self._do_completion_with_retries(prompt, **kwargs)
         except Exception as e:
-            # This will only run after all retries have failed
+            for m in prompt:
+                redact_audio_content(m["content"])
+            logging.info("Sampling failed!")
+            logging.info(f"Prompt: {prompt}")
+            logging.info(f"Error: {str(e)}")
             return f"Error: {str(e)}"
 
 
