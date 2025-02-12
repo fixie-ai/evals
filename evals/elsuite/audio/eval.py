@@ -499,7 +499,7 @@ class BigBenchAudio(MatchAudioTask):
     """
 
     BIGBENCH_USER_PROMPT = """
-    The question, for reference only: START QUESTION {question} \n\nEND QUESTION
+    The question, for reference only: START QUESTION \n\nEND QUESTION
 
     The OFFICIAL ANSWER:{expected_answer}
 
