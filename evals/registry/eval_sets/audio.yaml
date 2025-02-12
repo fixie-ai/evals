@@ -12,20 +12,23 @@ transcript:
 
 audio-core:
   evals:
-    - audio-transcribe
-    - audio-bigbench
-    - audiobench-cn-college-listen-mcq
-    - audiobench-dream-tts-mcq
-    - audiobench-public-sg-speech-qa
-    - audiobench-slue-p2-sqa5
-    - audio-translate-covost-zh-CN_en
-    - audio-translate-covost-ru_en
-    - audio-translate-covost-es_en
+    # - audio-transcribe
+    # - audio-bigbench
+    # - audiobench-cn-college-listen-mcq
+    # - audiobench-dream-tts-mcq
+    # - audiobench-public-sg-speech-qa
+    # - audiobench-slue-p2-sqa5
+    # - audio-translate-covost-zh-CN_en
+    # - audio-translate-covost-ru_en
+    # - audio-translate-covost-es_en
     - audio-translate-covost-en_ca
     - audio-translate-covost-en_ar
     - audio-translate-covost-en_de
-    - audio-translate-covost-tr_en
-    - audio-translate-covost-sv-SE_en
+    - audio-boolq
+    - audio-ser
+    - audio-sqa-*.validation.v1
+    # - audio-translate-covost-tr_en
+    # - audio-translate-covost-sv-SE_en
 
 audio-core-translate: 
   evals:
