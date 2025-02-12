@@ -613,6 +613,7 @@ class AudioBenchTask(MatchAudioTask):
         return build_messages(self.DEFAULT_PROMPT, " ".join(components), sample["audio"])
 
     def _compute_metrics(self, sample: Sample, sampled: str):
+        print("question, generated_answer, expected_answer: ", question, sampled, sample["answer"])
         prompt_template = self.AUDIOBENCH_USER_PROMPT_BINARY if self.is_mcq else self.AUDIOBENCH_USER_PROMPT
         question = sample["instruction"] + ("\n" + sample["choices"] if self.is_mcq else "")
         messages = [
