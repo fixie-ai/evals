@@ -91,7 +91,7 @@ class AudioTask(evals.Eval):
         return self._compute_corpus_metrics()
 
     def _load_dataset(self):
-        ds = load_hf_dataset(self.dataset, evals.eval._MAX_SAMPLES).cast_column(
+        ds = load_hf_dataset(self.dataset, 2000).cast_column(
             "audio", Audio(sampling_rate=DEFAULT_SAMPLE_RATE)
         )
         return list(ds)
