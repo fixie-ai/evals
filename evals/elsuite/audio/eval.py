@@ -499,7 +499,7 @@ class BigBenchAudio(MatchAudioTask):
     """
 
     BIGBENCH_USER_PROMPT = """
-    The question, for reference only: START QUESTION \n\nEND QUESTION
+    The question, for reference only: START QUESTION {question} \n\nEND QUESTION
 
     The OFFICIAL ANSWER:{expected_answer}
 
@@ -514,6 +514,7 @@ class BigBenchAudio(MatchAudioTask):
 
     def __init__(self, eval_completion_fn: CompletionFn, *args, **kwargs):
         super().__init__(*args, **kwargs)
+        print("BIGBENCH_USER_PROMPT: ", self.BIGBENCH_USER_PROMPT)
         self.eval_completion_kwargs = {"max_tokens": 1024}
         self.eval_completion_fn = evals.registry.Registry().make_completion_fn(eval_completion_fn)
 
