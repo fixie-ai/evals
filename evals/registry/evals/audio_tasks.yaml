@@ -124,7 +124,7 @@ audio-bigbench.validation.v1:
   args:
     dataset: hf://fixie-ai/big_bench_audio?split=train
     eval_completion_fn: gpt-4o
-    max_audio_duration: -1
+    max_audio_duration: 30
 
 audiobench-cn-college-listen-mcq:
   id: audiobench-cn-college-listen-mcq.validation.v1
@@ -134,7 +134,7 @@ audiobench-cn-college-listen-mcq.validation.v1:
   args:
     dataset: hf://fixie-ai/cn_college_listen_mcq_test?split=test
     eval_completion_fn: gpt-4o
-    max_audio_duration: -1
+    max_audio_duration: 30
     is_mcq: true
 
 audiobench-dream-tts-mcq: 
@@ -145,7 +145,7 @@ audiobench-dream-tts-mcq.validation.v1:
   args:
     dataset: hf://fixie-ai/dream_tts_mcq_test?split=test
     eval_completion_fn: gpt-4o
-    max_audio_duration: -1
+    max_audio_duration: 30
     is_mcq: true
 
 audiobench-public-sg-speech-qa:
@@ -156,7 +156,7 @@ audiobench-public-sg-speech-qa.validation.v1:
   args:
     dataset: hf://fixie-ai/public_sg_speech_qa_test?split=test
     eval_completion_fn: gpt-4o
-    max_audio_duration: -1
+    max_audio_duration: 30
     is_mcq: false 
 
 audiobench-slue-p2-sqa5: 
@@ -167,7 +167,7 @@ audiobench-slue-p2-sqa5.validation.v1:
   args:
     dataset: hf://fixie-ai/slue_p2_sqa5_test?split=test
     eval_completion_fn: gpt-4o
-    max_audio_duration: -1
+    max_audio_duration: 30
     is_mcq: false 
 
 # Text-only versions
