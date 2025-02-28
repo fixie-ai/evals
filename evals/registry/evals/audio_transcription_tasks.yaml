@@ -56,7 +56,6 @@ commonvoice-hi-transcription.test.v1:
     dataset: hf://fixie-ai/common_voice_17_0?name=hi&split=test
     text_field: sentence
 
-
 ami-ihm-transcription:
   id: ami-ihm-transcription.test.v1
   metrics: [accuracy]
@@ -65,3 +64,13 @@ ami-ihm-transcription.test.v1:
   class: evals.elsuite.audio.eval:Transcribe
   args:
     dataset: hf://edinburghcstr/ami?name=ihm&split=test
+
+ami-ihm-transcription-short:
+  id: ami-ihm-transcription.test.v1
+  metrics: [accuracy]
+
+ami-ihm-transcription.test.v1:
+  class: evals.elsuite.audio.eval:Transcribe
+  args:
+    dataset: hf://edinburghcstr/ami?name=ihm&split=test
+    max_audio_duration: 3.0
