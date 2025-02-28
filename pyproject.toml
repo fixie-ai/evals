@@ -46,7 +46,7 @@ dependencies = [
     "tqdm",
     "types-PyYAML",
     "types-tqdm",
-    "websockets",
+    "websockets>=14.2",
     "zstandard",
     "transformers[torch]",
     "peft",

@@ -14,6 +14,10 @@ audio-core:
   evals:
     - audio-transcribe
     - audio-bigbench
+    - audiobench-cn-college-listen-mcq
+    - audiobench-dream-tts-mcq
+    - audiobench-public-sg-speech-qa
+    - audiobench-slue-p2-sqa5
     - audio-translate-covost-zh-CN_en
     - audio-translate-covost-ru_en
     - audio-translate-covost-es_en
@@ -35,8 +39,6 @@ audio-core-translate:
     - audio-translate-covost-zh-CN_en
     - audio-translate-covost-sv-SE_en
     - audio-translate-covost-tr_en
-
-
 
 transcript-core:
   evals:
@@ -64,6 +66,11 @@ transcript-translate:
 audio-sqa:
   evals:
     - audio-sqa-web-questions
+    - audio-bigbench
+    - audiobench-cn-college-listen-mcq
+    - audiobench-dream-tts-mcq
+    - audiobench-public-sg-speech-qa
+    - audiobench-slue-p2-sqa5
 
 transcript-sqa:
   evals:

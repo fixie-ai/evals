@@ -9,6 +9,8 @@ import tenacity
 import jiwer
 from datasets import Audio
 from sacrebleu.metrics.bleu import BLEU
+from tenacity import retry, stop_after_attempt, wait_exponential, retry_if_exception_type
+
 
 import evals
 import evals.metrics
@@ -42,7 +44,7 @@ class AudioTask(evals.Eval):
         text_only: bool = False,
         temperature: float = 0.7,
         max_tokens: int = 4096,
-        max_audio_duration: int = 30,
+        max_audio_duration: int = 30, # If -1, no duration check
         *args,
         **kwargs,
     ):
@@ -71,7 +73,7 @@ class AudioTask(evals.Eval):
 
         Currently only filters out samples with audio longer than max_audio_duration.
         """
-        return get_audio_duration(sample["audio"]) < self.max_audio_duration
+        return get_audio_duration(sample["audio"]) < self.max_audio_duration or self.max_audio_duration == -1
 
     def run(self, recorder: RecorderBase):
         x = recorder.record_sampling
@@ -98,26 +100,19 @@ class AudioTask(evals.Eval):
 
     def _get_completion_kwargs(self, sample: Sample):
         return {}
-    
-    def _do_completion(self, prompt, **kwargs):
-        try:
-            sampled = self._try_completion_with_retry(prompt, **kwargs)
-        except Exception as e:
-            for m in prompt:
-                redact_audio_content(m["content"])
-            logging.info("Sampling failed after multiple retries!")
-            logging.info(f"Prompt: {prompt}")
-            logging.info(f"Error: {str(e)}")
-            sampled = "ERROR: " + str(e)
-        return sampled
-    
-    @tenacity.retry(
-        retry=tenacity.retry_if_exception_type(Exception),
-        wait=tenacity.wait_exponential(multiplier=1, min=4, max=10), 
-        stop=tenacity.stop_after_attempt(3),
-        after=lambda retry_state: logging.warning(f"Warning: Completion attempt {retry_state.attempt_number} failed, retrying...")
+
+    @retry(
+        stop=stop_after_attempt(3),
+        wait=wait_exponential(multiplier=1, min=1, max=10),
+        retry=retry_if_exception_type(Exception),
+        before_sleep=lambda retry_state: logging.warning(
+            f"API request failed with error: {retry_state.outcome.exception()}. "
+            f"Retrying in {retry_state.next_action.sleep} seconds... "
+            f"(Attempt {retry_state.attempt_number}/3)"
+        ),
+        reraise=False
     )
-    def _try_completion_with_retry(self, prompt, **kwargs):
+    def _do_completion_with_retries(self, prompt, **kwargs):
         result = self.completion_fn(
             prompt=prompt,
             temperature=self.temperature,
@@ -125,8 +120,19 @@ class AudioTask(evals.Eval):
             **kwargs,
         )
         return result.get_completions()[0]
-    
-    
+
+    def _do_completion(self, prompt, **kwargs):
+        try:
+            return self._do_completion_with_retries(prompt, **kwargs)
+        except Exception as e:
+            for m in prompt:
+                redact_audio_content(m["content"])
+            logging.info("Sampling failed after multiple retries!")
+            logging.info(f"Prompt: {prompt}")
+            logging.info(f"Error: {str(e)}")
+            return f"Error: {str(e)}"
+
+
 class MatchAudioTask(AudioTask):
     def _get_match_events(self):
         return self.recorder.get_events("match")
@@ -552,3 +558,101 @@ class BigBenchAudio(MatchAudioTask):
     def _compute_corpus_metrics(self):
         # Use the same pattern as Transcribe
         return {"accuracy": evals.metrics.get_accuracy(self._get_match_events())}
+
+class AudioBenchTask(MatchAudioTask):
+    AUDIOBENCH_SYSTEM_PROMPT = """
+    You are a helpful assistant.
+    """
+
+    AUDIOBENCH_USER_PROMPT = """\
+    [Reference Answer]
+    {expected_answer}
+    [Model Answer]
+    {generated_answer}
+    [Question]
+    {question}
+    [Task]
+    Rate the model's answer based on its alignment with the reference answer, focusing on accuracy and relevance to the reference provided. Please be critical on the details. If the model response is something like 'cannot decide', please rate as 0.
+    Criteria: Assess if the model's response mirrors the reference in terms of content, accuracy, and relevance.
+    Score0: The answer is refusing to give concrete results, providing something like 'cannot decide'.
+    Score0: The answer is completely misaligned, providing incorrect or irrelevant information compared to the reference.
+    Score1: The answer shows minimal alignment, often misunderstanding or providing irrelevant details unrelated to the reference.
+    Score2: The answer recognizes the topic but diverges significantly from the reference in accuracy or relevance.
+    Score3: The answer aligns with the reference generally but lacks detail or precise accuracy in some aspects.
+    Score4: The answer is mostly accurate and relevant, closely following the reference but could be clearer or more detailed.
+    Score5: The answer is highly accurate, detailed, and matches the reference answer perfectly, capturing its essence and detail.
+    Your response should be formatted as follows:
+    Explanation: (Provide a concise explanation of your rating, comparing the reference answer with the model's response. "The reference answer is [XXX], while the model's answer is [YYY]. I think ...")
+    Rating: (int)
+    """
+
+    AUDIOBENCH_USER_PROMPT_BINARY = """\
+    [Reference Answer]
+    {expected_answer}
+    [Model Answer]
+    {generated_answer}
+    [Question]
+    {question}
+    [Task]
+    Rate the model's answer based on its alignment with the reference answer, focusing on accuracy and relevance to the reference provided. Please be critical on the details.
+    Criteria: Assess if the model's response mirrors the reference in terms of content, accuracy, and relevance. Please give a score of 0 or 1. 
+    Score0: The answer is refusing to give concrete results, providing something like 'cannot decide'.
+    Score0: The answer is wrong, providing incorrect or irrelevant information compared to the reference. 
+    Score1: The answer is correct, capturing or covering the meaning from the reference.
+    Your response should be formatted as follows:
+    Explanation: (Provide a concise explanation of your rating, comparing the reference answer with the model's response. "The reference answer is [XXX], while the model's answer is [YYY]. I think ...")
+    Rating: (int)
+    """
+
+    def __init__(self, eval_completion_fn: CompletionFn, is_mcq: bool = False, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        self.is_mcq = is_mcq
+        self.eval_completion_kwargs = {"max_tokens": 500}
+        self.eval_completion_fn = evals.registry.Registry().make_completion_fn(eval_completion_fn)
+
+    def _build_prompt(self, sample: Sample, text_only: bool = False):
+        assert not text_only
+        components = [AUDIO_PLACEHOLDER, sample["instruction"]]
+        if self.is_mcq:
+            components.append(sample["choices"])
+        return build_messages(self.DEFAULT_PROMPT, " ".join(components), sample["audio"])
+
+    def _compute_metrics(self, sample: Sample, sampled: str):
+        prompt_template = self.AUDIOBENCH_USER_PROMPT_BINARY if self.is_mcq else self.AUDIOBENCH_USER_PROMPT
+        question = sample["instruction"] + ("\n" + sample["choices"] if self.is_mcq else "")
+        messages = [
+            {"role": "system", "content": self.AUDIOBENCH_SYSTEM_PROMPT},
+            {
+                "role": "user", 
+                "content": prompt_template.format(
+                    question=question,
+                    generated_answer=sampled,
+                    expected_answer=sample["answer"]
+                )
+            }
+        ]
+
+        response = self.eval_completion_fn(prompt=messages, **self.eval_completion_kwargs)
+
+        # Extract score from response
+        rating_text = response.get_completions()[0].strip()
+        try:
+            score = int(rating_text.split()[-1])
+        except (ValueError, IndexError):
+            score = 0
+
+        # Record results based on config
+        if self.is_mcq:
+            evals.record.record_match(score == 1, expected=sample["answer"], sampled=sampled)
+        else:
+            evals.record.record_metrics(choice=sampled, score=score)
+
+        return score
+
+    def _compute_corpus_metrics(self):
+        if self.is_mcq:
+            return {"accuracy": evals.metrics.get_accuracy(self._get_match_events())}
+        
+        events = self.recorder.get_metrics()
+        scores = [e["score"] for e in events]
+        return {"average_score": sum(scores) / len(scores) if scores else 0}
