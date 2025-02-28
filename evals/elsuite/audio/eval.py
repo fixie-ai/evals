@@ -4,6 +4,8 @@ import string
 from collections import Counter
 from typing import Any, Dict, List, Optional, Union
 
+import tenacity
+
 import jiwer
 from datasets import Audio
 from sacrebleu.metrics.bleu import BLEU
@@ -96,26 +98,35 @@ class AudioTask(evals.Eval):
 
     def _get_completion_kwargs(self, sample: Sample):
         return {}
-
+    
     def _do_completion(self, prompt, **kwargs):
         try:
-            result = self.completion_fn(
-                prompt=prompt,
-                temperature=self.temperature,
-                max_tokens=self.max_tokens,
-                **kwargs,
-            )
-            sampled = result.get_completions()[0]
+            sampled = self._try_completion_with_retry(prompt, **kwargs)
         except Exception as e:
             for m in prompt:
                 redact_audio_content(m["content"])
-            logging.info("Sampling failed!")
+            logging.info("Sampling failed after multiple retries!")
             logging.info(f"Prompt: {prompt}")
             logging.info(f"Error: {str(e)}")
             sampled = "ERROR: " + str(e)
         return sampled
-
-
+    
+    @tenacity.retry(
+        retry=tenacity.retry_if_exception_type(Exception),
+        wait=tenacity.wait_exponential(multiplier=1, min=4, max=10), 
+        stop=tenacity.stop_after_attempt(3),
+        after=lambda retry_state: logging.warning(f"Warning: Completion attempt {retry_state.attempt_number} failed, retrying...")
+    )
+    def _try_completion_with_retry(self, prompt, **kwargs):
+        result = self.completion_fn(
+            prompt=prompt,
+            temperature=self.temperature,
+            max_tokens=self.max_tokens,
+            **kwargs,
+        )
+        return result.get_completions()[0]
+    
+    
 class MatchAudioTask(AudioTask):
     def _get_match_events(self):
         return self.recorder.get_events("match")
@@ -180,13 +191,16 @@ class ModelGradedAudioTask(AudioTask):
 
 class Transcribe(MatchAudioTask):
     TASK_PROMPT = f"Repeat the following text, without any explanation: {AUDIO_PLACEHOLDER}"
+    def __init__(self, *args, text_field: str = "text", **kwargs):
+        super().__init__(*args, **kwargs)
+        self.text_field = text_field
 
     def _build_prompt(self, sample: Sample, text_only: bool = False):
-        input = sample["text"] if text_only else sample["audio"]
+        input = sample[self.text_field] if text_only else sample["audio"]
         return build_messages(self.DEFAULT_PROMPT, self.TASK_PROMPT, input)
 
     def _compute_metrics(self, sample: Sample, sampled):
-        expected = sample["text"]
+        expected = sample[self.text_field]
         score = self._compute_wer(expected, sampled)
         evals.record.record_metrics(wer=score)
         match = score < 0.1

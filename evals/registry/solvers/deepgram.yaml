@@ -1,0 +1,2 @@
+generation/deepgram:
+  class: evals.solvers.providers.deepgram.deepgram_solver:DeepgramSolver

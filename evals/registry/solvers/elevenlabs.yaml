@@ -1,0 +1,2 @@
+generation/scribe:
+  class: evals.solvers.providers.elevenlabs.eleven_solver:ElevenSolver

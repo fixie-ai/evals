@@ -3,6 +3,9 @@
 # text transcript to the downstream solver. The Whisper solver can be used with
 # any solver that accepts text input.
 
+generation/whisper:
+  class: evals.solvers.providers.openai.whisper_solver:WhisperSolver
+
 generation/whisper/gpt-4-turbo:
   class: evals.solvers.providers.openai.whisper_solver:WhisperCascadedSolver
   args:

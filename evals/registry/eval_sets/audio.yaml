@@ -68,3 +68,16 @@ audio-sqa:
 transcript-sqa:
   evals:
     - transcript-sqa-web-questions
+
+audio-transcription-set:
+  evals:
+    - fleurs-en-transcription
+    - librispeech-clean-transcription
+    - librispeech-other-transcription
+    - commonvoice-en-transcription
+
+audio-transcription-set-b:
+  evals:
+    - librispeech-clean-transcription
+    - librispeech-other-transcription
+    - commonvoice-en-transcription
