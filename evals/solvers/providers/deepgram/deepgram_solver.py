@@ -5,9 +5,11 @@ import os
 DEEPGRAM_API_KEY = os.environ.get("DEEPGRAM_API_KEY")
 
 class DeepgramSolver(TranscriptionSolver):
-    def __init__(self, **kwargs):
+    def __init__(self, model_name="nova-3", **kwargs):
         super().__init__(**kwargs)
         self.client_options = None
+        self.model_name = model_name
+
     @property
     def name(self) -> str:
         return "whisper"
@@ -20,7 +22,7 @@ class DeepgramSolver(TranscriptionSolver):
         if not self.client:
             self.client = deepgram.DeepgramClient(DEEPGRAM_API_KEY)
             self.client_options = deepgram.PrerecordedOptions(
-                model="nova-3",
+                model=self.model_name,
                 smart_format=True,
             )
 
