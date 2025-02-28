@@ -3,7 +3,7 @@ generation/deepgram/nova-3:
   args:
     model_name: nova-3
 
-generation/deepgram/nova-2:
+generation/deepgram/nova-2-hi:
   class: evals.solvers.providers.deepgram.deepgram_solver:DeepgramSolver
   args:
-    model_name: nova-2
+    model_name: nova-2-hi

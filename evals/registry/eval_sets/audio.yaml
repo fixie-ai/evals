@@ -88,3 +88,8 @@ audio-transcription-set-b:
     - librispeech-clean-transcription
     - librispeech-other-transcription
     - commonvoice-en-transcription
+
+audio-transcription-hi:
+  evals:
+    - fleurs-hi-transcription
+    - commonvoice-hi-transcription

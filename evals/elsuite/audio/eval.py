@@ -102,13 +102,13 @@ class AudioTask(evals.Eval):
         return {}
 
     @retry(
-        stop=stop_after_attempt(3),
+        stop=stop_after_attempt(5),
         wait=wait_exponential(multiplier=1, min=1, max=10),
         retry=retry_if_exception_type(Exception),
         before_sleep=lambda retry_state: logging.warning(
             f"API request failed with error: {retry_state.outcome.exception()}. "
             f"Retrying in {retry_state.next_action.sleep} seconds... "
-            f"(Attempt {retry_state.attempt_number}/3)"
+            f"(Attempt {retry_state.attempt_number}/5)"
         ),
         reraise=False
     )

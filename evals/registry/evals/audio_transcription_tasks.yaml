@@ -26,6 +26,16 @@ fleurs-en-transcription.test.v1:
     dataset: hf://fixie-ai/fleurs?name=en_us&split=test
     text_field: transcription
 
+fleurs-hi-transcription:
+  id: fleurs-hi-transcription.test.v1
+  metrics: [accuracy]
+
+fleurs-hi-transcription.test.v1:
+  class: evals.elsuite.audio.eval:Transcribe
+  args:
+    dataset: hf://fixie-ai/fleurs?name=hi_in&split=test
+    text_field: transcription
+
 commonvoice-en-transcription:
   id: commonvoice-en-transcription.test.v1
   metrics: [accuracy]
@@ -35,3 +45,23 @@ commonvoice-en-transcription.test.v1:
   args:
     dataset: hf://fixie-ai/common_voice_17_0?name=en&split=test
     text_field: sentence
+
+commonvoice-hi-transcription:
+  id: commonvoice-hi-transcription.test.v1
+  metrics: [accuracy]
+
+commonvoice-hi-transcription.test.v1:
+  class: evals.elsuite.audio.eval:Transcribe
+  args:
+    dataset: hf://fixie-ai/common_voice_17_0?name=hi&split=test
+    text_field: sentence
+
+
+ami-ihm-transcription:
+  id: ami-ihm-transcription.test.v1
+  metrics: [accuracy]
+
+ami-ihm-transcription.test.v1:
+  class: evals.elsuite.audio.eval:Transcribe
+  args:
+    dataset: hf://edinburghcstr/ami?name=ihm&split=test
