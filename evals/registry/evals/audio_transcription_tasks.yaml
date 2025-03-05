@@ -66,10 +66,10 @@ ami-ihm-transcription.test.v1:
     dataset: hf://edinburghcstr/ami?name=ihm&split=test
 
 ami-ihm-transcription-short:
-  id: ami-ihm-transcription.test.v1
+  id: ami-ihm-transcription-short.test.v1
   metrics: [accuracy]
 
-ami-ihm-transcription.test.v1:
+ami-ihm-transcription-short.test.v1:
   class: evals.elsuite.audio.eval:Transcribe
   args:
     dataset: hf://edinburghcstr/ami?name=ihm&split=test

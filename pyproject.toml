@@ -83,6 +83,11 @@ readme = "README.md"
 
 [tool.poetry.dependencies]
 python = "^3.11"
+deepgram-sdk = "^3.10.0"
+whisper-normalizer = "^0.1.0"
+evaluate = "^0.4.3"
+numpy = "2.1"
+elevenlabs = "^1.52.0"
 
 
 [build-system]
