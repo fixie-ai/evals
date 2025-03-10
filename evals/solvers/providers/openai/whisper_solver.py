@@ -10,8 +10,6 @@ import torch
 import torch.distributed
 import torch.multiprocessing as mp
 import transformers
-import tenacity
-import logging
 from evals.solvers.solver import NestedSolver, Solver, SolverResult, SolverSpec
 from evals.task_state import Message, TaskState
 
@@ -46,13 +44,6 @@ class TranscriptionSolver(Solver):
         return ""    
 
     @abstractmethod
-    # @tenacity.retry(
-    #     retry=tenacity.retry_if_result(lambda x: x.startswith("Error:")),
-    #     wait=tenacity.wait_exponential(multiplier=1, min=4, max=10),
-    #     stop=tenacity.stop_after_attempt(3),
-    #     after=lambda retry_state: logging.warning(f"Warning: Transcription attempt {retry_state.attempt_number} failed, retrying..."),
-    #     retry_error_callback=lambda retry_state: logging.error(f"Error: Transcription failed after {retry_state.attempt_number} attempts")
-    # )
     def _transcribe(self, wav_bytes: bytes) -> str:
         pass
 

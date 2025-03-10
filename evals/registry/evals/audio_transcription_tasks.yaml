@@ -74,3 +74,44 @@ ami-ihm-transcription.test.v1:
   args:
     dataset: hf://edinburghcstr/ami?name=ihm&split=test
     max_audio_duration: 3.0
+
+ultravox-calls-telephony-transcription:
+  id: ultravox-calls-telephony-transcription.test.v1
+  metrics: [accuracy]
+
+ultravox-calls-telephony-transcription.test.v1:
+  class: evals.elsuite.audio.eval:Transcribe
+  args:
+    dataset: hf://fixie-ai/ultravox-calls?name=telephony&split=train
+    text_field: clean_transcription
+
+ultravox-calls-telephony-prekrisp-transcription:
+  id: ultravox-calls-telephony-prekrisp-transcription.test.v1
+  metrics: [accuracy]
+
+ultravox-calls-telephony-prekrisp-transcription.test.v1:
+  class: evals.elsuite.audio.eval:Transcribe
+  args:
+    dataset: hf://fixie-ai/ultravox-calls?name=telephony_pre_krisp&split=train
+    text_field: clean_transcription
+
+
+ultravox-calls-transcription:
+  id: ultravox-calls-transcription.test.v1
+  metrics: [accuracy]
+
+ultravox-calls-transcription.test.v1:
+  class: evals.elsuite.audio.eval:Transcribe
+  args:
+    dataset: hf://fixie-ai/ultravox-calls?name=random_calls&split=train
+    text_field: clean_transcription
+
+ultravox-calls-prekrisp-transcription:
+  id: ultravox-calls-prekrisp-transcription.test.v1
+  metrics: [accuracy]
+
+ultravox-calls-prekrisp-transcription.test.v1:
+  class: evals.elsuite.audio.eval:Transcribe
+  args:
+    dataset: hf://fixie-ai/ultravox-calls?name=random_calls_pre_krisp&split=train
+    text_field: clean_transcription

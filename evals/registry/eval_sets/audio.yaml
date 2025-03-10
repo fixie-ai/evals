@@ -93,3 +93,10 @@ audio-transcription-hi:
   evals:
     - fleurs-hi-transcription
     - commonvoice-hi-transcription
+
+ultravox-calls-transcription-set:
+  evals:
+    - ultravox-calls-telephony-transcription
+    - ultravox-calls-telephony-prekrisp-transcription
+    - ultravox-calls-prekrisp-transcription
+    - ultravox-calls-transcription
