@@ -82,12 +82,13 @@ audio-transcription-set:
     - librispeech-clean-transcription
     - librispeech-other-transcription
     - commonvoice-en-transcription
+    - ami-ihm-transcription
+    - ami-ihm-transcription-short
 
-audio-transcription-set-b:
+ami-ihm-transcription-set:
   evals:
-    - librispeech-clean-transcription
-    - librispeech-other-transcription
-    - commonvoice-en-transcription
+    - ami-ihm-transcription
+    - ami-ihm-transcription-short
 
 audio-transcription-hi:
   evals:
