@@ -4,9 +4,7 @@ import string
 from collections import Counter
 from typing import Any, Dict, List, Optional, Union
 
-import tenacity
 import re
-import jiwer
 import evaluate
 from datasets import Audio
 from sacrebleu.metrics.bleu import BLEU
@@ -106,13 +104,13 @@ class AudioTask(evals.Eval):
         return {}
 
     @retry(
-        stop=stop_after_attempt(5),
-        wait=wait_exponential(multiplier=2, min=1, max=20),
+        stop=stop_after_attempt(3),
+        wait=wait_exponential(multiplier=1, min=1, max=10),
         retry=retry_if_exception_type(Exception),
         before_sleep=lambda retry_state: logging.warning(
             f"API request failed with error: {retry_state.outcome.exception()}. "
             f"Retrying in {retry_state.next_action.sleep} seconds... "
-            f"(Attempt {retry_state.attempt_number}/5)"
+            f"(Attempt {retry_state.attempt_number}/3)"
         ),
         reraise=True
     )
@@ -131,7 +129,7 @@ class AudioTask(evals.Eval):
         except Exception as e:
             for m in prompt:
                 redact_audio_content(m["content"])
-            logging.info("Sampling failed after multiple retries!")
+            logging.info("Sampling failed!")
             logging.info(f"Prompt: {prompt}")
             logging.info(f"Error: {str(e)}")
             return f"Error: {str(e)}"
