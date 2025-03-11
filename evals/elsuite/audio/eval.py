@@ -218,8 +218,7 @@ class Transcribe(MatchAudioTask):
     def _compute_metrics(self, sample: Sample, sampled):
         expected = sample[self.text_field]
         score = self._compute_wer(expected, sampled)
-        strict_score = self._compute_strict_wer(expected, sampled)
-        evals.record.record_metrics(wer=score, strict_wer=strict_score)
+        evals.record.record_metrics(wer=score)
         match = score < 0.1
         evals.record.record_match(match, expected=expected, sampled=sampled, wer=score)
         return match
@@ -227,7 +226,6 @@ class Transcribe(MatchAudioTask):
     def _compute_corpus_metrics(self):
         metrics = super()._compute_corpus_metrics()
         metrics["wer"] = self._compute_wer(self._get_expected_values(), self._get_sampled_values())
-        metrics["strict_wer"] = self._compute_strict_wer(self._get_expected_values(), self._get_sampled_values())
         return metrics
 
     def remove_diacritics(self,text):
@@ -272,32 +270,6 @@ class Transcribe(MatchAudioTask):
             logging.info(f"Expected: {expected}, Sampled: {sampled}")
             wer_score = 0.0
         return wer_score*100
-
-    def _compute_strict_wer(self, expected, sampled): 
-
-        if self.lang_id == "ar":
-            expected = self.remove_diacritics(expected)
-            sampled = self.remove_diacritics(sampled)
-
-        # Languages where we compute CER (space-separated characters)
-        if self.lang_id in ["zh", "ja", "th", "lo", "my"]:
-            # Convert to space-separated characters for CER
-            expected = " ".join(list(expected))
-            sampled = " ".join(list(sampled))
-
-        transform = jiwer.Compose(
-            [
-                jiwer.RemovePunctuation(),
-                jiwer.ToLowerCase(),
-                jiwer.RemoveWhiteSpace(replace_by_space=True),
-                jiwer.Strip(),
-                jiwer.ReduceToListOfListOfWords(),
-            ]
-        )
-        output = jiwer.process_words(
-            expected, sampled, reference_transform=transform, hypothesis_transform=transform
-        )
-        return output.wer
 
 class Translate(MatchAudioTask):
     TASK_PROMPT = f"Please translate the text to {{language}}. Your response should only include the {{language}} translation, without any additional words:\n\n{AUDIO_PLACEHOLDER}"
