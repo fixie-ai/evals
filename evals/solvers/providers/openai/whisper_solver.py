@@ -3,7 +3,6 @@ import base64
 import io
 from concurrent.futures import ProcessPoolExecutor
 from typing import Any, Optional
-from abc import abstractmethod
 import librosa
 import openai
 import torch
@@ -43,7 +42,6 @@ class TranscriptionSolver(Solver):
                             return text
         return ""    
 
-    @abstractmethod
     def _transcribe(self, wav_bytes: bytes) -> str:
         pass
 

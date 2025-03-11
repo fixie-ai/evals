@@ -115,7 +115,7 @@ class OpenAISolver(Solver):
     @retry(
         retry=retry_if_exception_type((Exception)),
         stop=stop_after_attempt(3),
-        wait=wait_exponential(multiplier=2, min=1, max=20),
+        wait=wait_exponential(multiplier=1, min=1, max=10),
         reraise=True,
         before_sleep=lambda retry_state: logging.warning(
             f"API request failed with error: {retry_state.outcome.exception()}. "
