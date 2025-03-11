@@ -200,18 +200,20 @@ class ModelGradedAudioTask(AudioTask):
 
 
 class Transcribe(MatchAudioTask):
-    TASK_PROMPT = f"Repeat the following text, without any explanation: {AUDIO_PLACEHOLDER}"
+    TASK_PROMPT = f"Repeat the following text, without any explanation: "
     
     # Arabic diacritic marks
     arabic_diacritics = re.compile(r"[\u064B-\u065F\u0670]")
     
-    def __init__(self, *args, text_field: str = "text", **kwargs):
+    def __init__(self, *args, text_field: str = "text", task_prompt_override: str = None, **kwargs):
         super().__init__(*args, **kwargs)
         self.text_field = text_field
+        if task_prompt_override:
+            self.TASK_PROMPT = task_prompt_override
 
     def _build_prompt(self, sample: Sample, text_only: bool = False):
         input = sample[self.text_field] if text_only else sample["audio"]
-        return build_messages(self.DEFAULT_PROMPT, self.TASK_PROMPT, input)
+        return build_messages(self.DEFAULT_PROMPT, f"{self.TASK_PROMPT}{AUDIO_PLACEHOLDER}", input)
 
     def _compute_metrics(self, sample: Sample, sampled):
         expected = sample[self.text_field]
