@@ -82,7 +82,7 @@ ultravox-calls-telephony-transcription:
 ultravox-calls-telephony-transcription.test.v1:
   class: evals.elsuite.audio.eval:Transcribe
   args:
-    dataset: hf://fixie-ai/ultravox-calls?name=telephony&split=test
+    dataset: hf://fixie-ai/ultravox-calls?name=en-telephony&split=test
     text_field: clean_transcription
 
 ultravox-calls-telephony-prekrisp-transcription:
@@ -92,7 +92,7 @@ ultravox-calls-telephony-prekrisp-transcription:
 ultravox-calls-telephony-prekrisp-transcription.test.v1:
   class: evals.elsuite.audio.eval:Transcribe
   args:
-    dataset: hf://fixie-ai/ultravox-calls?name=telephony_pre_krisp&split=test
+    dataset: hf://fixie-ai/ultravox-calls?name=en-telephony-prekrisp&split=test
     text_field: clean_transcription
 
 
@@ -103,7 +103,7 @@ ultravox-calls-transcription:
 ultravox-calls-transcription.test.v1:
   class: evals.elsuite.audio.eval:Transcribe
   args:
-    dataset: hf://fixie-ai/ultravox-calls?name=random_calls&split=test
+    dataset: hf://fixie-ai/ultravox-calls?name=en&split=test
     text_field: clean_transcription
 
 ultravox-calls-prekrisp-transcription:
@@ -113,5 +113,5 @@ ultravox-calls-prekrisp-transcription:
 ultravox-calls-prekrisp-transcription.test.v1:
   class: evals.elsuite.audio.eval:Transcribe
   args:
-    dataset: hf://fixie-ai/ultravox-calls?name=random_calls_pre_krisp&split=test
+    dataset: hf://fixie-ai/ultravox-calls?name=en-prekrisp&split=test
     text_field: clean_transcription
