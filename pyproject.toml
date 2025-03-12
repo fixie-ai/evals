@@ -51,6 +51,10 @@ dependencies = [
     "transformers[torch]",
     "peft",
     "librosa",
+    "whisper-normalizer>=0.1.0",
+    "deepgram-sdk>=3.10.0",
+    "evaluate>=0.4.3",
+    "elevenlabs>=1.52.0",
 ]
 
 [project.urls]
@@ -73,21 +77,6 @@ packages = ["evals"]
 # Allow lines to be as long as 767 characters, this is currently the longest line
 # TODO: This should be brought down in the future
 line-length = 767
-
-[tool.poetry]
-name = "evals"
-version = "0.1.0"
-description = ""
-readme = "README.md"
-
-[tool.poetry.dependencies]
-python = "^3.11"
-deepgram-sdk = "^3.10.0"
-whisper-normalizer = "^0.1.0"
-evaluate = "^0.4.3"
-numpy = "2.1"
-elevenlabs = "^1.52.0"
-
 
 [build-system]
 requires = ["poetry-core"]
