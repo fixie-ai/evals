@@ -5,18 +5,19 @@ import os
 DEEPGRAM_API_KEY = os.environ.get("DEEPGRAM_API_KEY")
 
 class DeepgramSolver(TranscriptionSolver):
-    def __init__(self, model_name="nova-3", **kwargs):
+    def __init__(self, model_name="nova-3", detect_language=False, **kwargs):
         super().__init__(**kwargs)
         self.client_options = None
         self.model_name = model_name
+        self.detect_language = detect_language
 
     @property
     def name(self) -> str:
-        return "whisper"
+        return "deepgram"
     
     @property
     def model_version(self) -> str:
-        return "whisper-1"
+        return self.model_name
     
     def _transcribe(self, wav_bytes: bytes) -> str:
         if not self.client:
@@ -24,6 +25,7 @@ class DeepgramSolver(TranscriptionSolver):
             self.client_options = deepgram.PrerecordedOptions(
                 model=self.model_name,
                 smart_format=True,
+                detect_language=self.detect_language,
             )
 
         file = io.BytesIO(wav_bytes)

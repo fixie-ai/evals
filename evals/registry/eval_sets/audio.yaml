@@ -84,6 +84,10 @@ audio-transcription-set:
     - commonvoice-en-transcription
     - ami-ihm-transcription
     - ami-ihm-transcription-short
+    - ultravox-calls-telephony-transcription
+    - ultravox-calls-telephony-prekrisp-transcription
+    - ultravox-calls-prekrisp-transcription
+    - ultravox-calls-transcription
 
 ami-ihm-transcription-set:
   evals:

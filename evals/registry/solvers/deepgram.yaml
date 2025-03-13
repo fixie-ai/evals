@@ -3,6 +3,17 @@ generation/deepgram/nova-3:
   args:
     model_name: nova-3
 
+generation/deepgram/nova-2:
+  class: evals.solvers.providers.deepgram.deepgram_solver:DeepgramSolver
+  args:
+    model_name: nova-2
+    detect_language: true
+
+generation/deepgram/nova-2-en:
+  class: evals.solvers.providers.deepgram.deepgram_solver:DeepgramSolver
+  args:
+    model_name: nova-2-en
+
 generation/deepgram/nova-2-hi:
   class: evals.solvers.providers.deepgram.deepgram_solver:DeepgramSolver
   args:
