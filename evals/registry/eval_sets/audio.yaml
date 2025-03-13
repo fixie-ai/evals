@@ -89,6 +89,13 @@ audio-transcription-set:
     - ultravox-calls-prekrisp-transcription
     - ultravox-calls-transcription
 
+long-transcription-set:
+  evals:
+    - commonvoice-en-transcription
+    - ami-ihm-transcription
+    - ami-ihm-transcription-short
+
+
 ami-ihm-transcription-set:
   evals:
     - ami-ihm-transcription
@@ -105,3 +112,10 @@ ultravox-calls-transcription-set:
     - ultravox-calls-telephony-prekrisp-transcription
     - ultravox-calls-prekrisp-transcription
     - ultravox-calls-transcription
+
+ultravox-calls-transcription-cutoff-set:
+  evals:
+    - ultravox-calls-telephony-transcription-cutoff
+    - ultravox-calls-telephony-prekrisp-transcription-cutoff
+    - ultravox-calls-transcription-cutoff
+    - ultravox-calls-prekrisp-transcription-cutoff
