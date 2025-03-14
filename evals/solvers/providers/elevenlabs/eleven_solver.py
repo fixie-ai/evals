@@ -1,6 +1,6 @@
 import io
 import os
-
+from typing import Optional
 from elevenlabs import ElevenLabs
 
 from evals.solvers.providers.openai.whisper_solver import TranscriptionSolver
@@ -8,10 +8,10 @@ from evals.solvers.providers.openai.whisper_solver import TranscriptionSolver
 ELEVENLABS_API_KEY = os.environ.get("ELEVENLABS_API_KEY")
 
 class ElevenSolver(TranscriptionSolver):
-    def __init__(self, language_code: str = "eng", **kwargs):
+    def __init__(self, language_code: Optional[str] = None, **kwargs):
         super().__init__(**kwargs)
         self.language_code = language_code
-        
+
     @property
     def name(self) -> str:
         return "whisper"
