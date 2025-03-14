@@ -10,7 +10,8 @@ ELEVENLABS_API_KEY = os.environ.get("ELEVENLABS_API_KEY")
 class ElevenSolver(TranscriptionSolver):
     def __init__(self, language_code: Optional[str] = None, **kwargs):
         super().__init__(**kwargs)
-        self.language_code = language_code
+        self.language_code = language_code if language_code else None
+        print("LANGUAGE CODE", self.language_code)
 
     @property
     def name(self) -> str:
@@ -27,9 +28,16 @@ class ElevenSolver(TranscriptionSolver):
             )
 
         file = io.BytesIO(wav_bytes)
-        response = self.client.speech_to_text.convert(
-            model_id="scribe_v1",
-            file=file,
-            language_code=self.language_code,
-        )
+        if self.language_code:
+            # elevenlabs doesn't seem to work with language_code=None
+            response = self.client.speech_to_text.convert(
+                model_id="scribe_v1",
+                file=file,
+                language_code=self.language_code
+            )
+        else:
+            response = self.client.speech_to_text.convert(
+                model_id="scribe_v1",
+                file=file,
+            )
         return response.text
