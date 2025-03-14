@@ -46,6 +46,7 @@ class AudioTask(evals.Eval):
         temperature: float = 0.7,
         max_tokens: int = 4096,
         max_audio_duration: int = 30, # If -1, no duration check
+        min_audio_duration: int = 0.1, # If -1, no duration check
         lang_id: str = "en",
         *args,
         **kwargs,
@@ -58,6 +59,7 @@ class AudioTask(evals.Eval):
         self.max_tokens = max_tokens
         self._recorder = None
         self.max_audio_duration = max_audio_duration
+        self.min_audio_duration = min_audio_duration
         self.lang_id = lang_id
     @property
     def recorder(self):
@@ -75,7 +77,8 @@ class AudioTask(evals.Eval):
 
         Currently only filters out samples with audio longer than max_audio_duration.
         """
-        return get_audio_duration(sample["audio"]) < self.max_audio_duration or self.max_audio_duration == -1
+        audio_duration = get_audio_duration(sample["audio"])
+        return (audio_duration < self.max_audio_duration or self.max_audio_duration == -1) and (audio_duration > self.min_audio_duration or self.min_audio_duration == -1)
 
     def run(self, recorder: RecorderBase):
         x = recorder.record_sampling
@@ -263,7 +266,7 @@ class Transcribe(MatchAudioTask):
         if self.cut_off_transcription:
             pair = [(e, s[:2*len(e)]) for e, s in zip(expected, sampled)]
             expected, sampled = zip(*pair)
-            
+
         wer_metric = evaluate.load("wer")
 
         try:

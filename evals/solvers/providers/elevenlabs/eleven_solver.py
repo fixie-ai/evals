@@ -1,12 +1,17 @@
-from evals.solvers.providers.openai.whisper_solver import TranscriptionSolver
-import deepgram
 import io
 import os
-ELEVENLABS_API_KEY = os.environ.get("ELEVENLABS_API_KEY")
 
 from elevenlabs import ElevenLabs
 
+from evals.solvers.providers.openai.whisper_solver import TranscriptionSolver
+
+ELEVENLABS_API_KEY = os.environ.get("ELEVENLABS_API_KEY")
+
 class ElevenSolver(TranscriptionSolver):
+    def __init__(self, language_code: str = "eng", **kwargs):
+        super().__init__(**kwargs)
+        self.language_code = language_code
+        
     @property
     def name(self) -> str:
         return "whisper"
@@ -25,5 +30,6 @@ class ElevenSolver(TranscriptionSolver):
         response = self.client.speech_to_text.convert(
             model_id="scribe_v1",
             file=file,
+            language_code=self.language_code,
         )
         return response.text

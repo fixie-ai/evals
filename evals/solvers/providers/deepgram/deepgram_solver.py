@@ -5,11 +5,12 @@ import os
 DEEPGRAM_API_KEY = os.environ.get("DEEPGRAM_API_KEY")
 
 class DeepgramSolver(TranscriptionSolver):
-    def __init__(self, model_name="nova-3", detect_language=False, **kwargs):
+    def __init__(self, model_name="nova-3", detect_language=False, language=None, **kwargs):
         super().__init__(**kwargs)
         self.client_options = None
         self.model_name = model_name
         self.detect_language = detect_language
+        self.language = language
 
     @property
     def name(self) -> str:
@@ -26,6 +27,7 @@ class DeepgramSolver(TranscriptionSolver):
                 model=self.model_name,
                 smart_format=True,
                 detect_language=self.detect_language,
+                language=self.language
             )
 
         file = io.BytesIO(wav_bytes)

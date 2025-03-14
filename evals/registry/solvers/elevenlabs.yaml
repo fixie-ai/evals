@@ -1,2 +1,7 @@
 generation/scribe:
   class: evals.solvers.providers.elevenlabs.eleven_solver:ElevenSolver
+
+generation/scribe-eng:
+  class: evals.solvers.providers.elevenlabs.eleven_solver:ElevenSolver
+  args:
+    language_code: eng

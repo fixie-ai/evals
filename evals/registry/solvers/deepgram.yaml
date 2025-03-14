@@ -12,7 +12,8 @@ generation/deepgram/nova-2:
 generation/deepgram/nova-2-en:
   class: evals.solvers.providers.deepgram.deepgram_solver:DeepgramSolver
   args:
-    model_name: nova-2-en
+    model_name: nova-2
+    language: en
 
 generation/deepgram/nova-2-hi:
   class: evals.solvers.providers.deepgram.deepgram_solver:DeepgramSolver
