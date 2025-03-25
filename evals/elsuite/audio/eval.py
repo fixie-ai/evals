@@ -201,7 +201,10 @@ class Transcribe(MatchAudioTask):
         return build_messages(self.DEFAULT_PROMPT, self.TASK_PROMPT, input)
 
     def _compute_metrics(self, sample: Sample, sampled):
-        expected = sample["text"]
+        try:
+            expected = sample["text"]
+        except:
+            expected = sample["transcription"]
         score = self._compute_wer(expected, sampled)
         evals.record.record_metrics(wer=score)
         match = score < 0.1
