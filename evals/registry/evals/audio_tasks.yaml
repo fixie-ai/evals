@@ -10,6 +10,14 @@ audio-transcribe.test.v1:
   args:
     dataset: hf://openslr/librispeech_asr?split=test.clean
 
+fleurs-transcribe:
+  id: fleurs-transcribe.test.v1
+  metrics: [accuracy]
+fleurs-transcribe.test.v1
+  class: evals.elsuite.audio.eval:Transcribe
+  args:
+    dataset: hf://fixie-ai/fleurs?name=hi_in&split=test
+
 audio-boolq:
   id: audio-boolq.validation.v1
   metrics: [accuracy]

@@ -13,6 +13,7 @@ transcript:
 audio-core:
   evals:
     - audio-transcribe
+    - fleurs-hi-transcribe
     - audio-bigbench
     - audiobench-cn-college-listen-mcq
     - audiobench-dream-tts-mcq
