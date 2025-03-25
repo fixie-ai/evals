@@ -13,7 +13,7 @@ audio-transcribe.test.v1:
 fleurs-transcribe:
   id: fleurs-transcribe.test.v1
   metrics: [accuracy]
-fleurs-transcribe.test.v1
+fleurs-transcribe.test.v1:
   class: evals.elsuite.audio.eval:Transcribe
   args:
     dataset: hf://fixie-ai/fleurs?name=hi_in&split=test
