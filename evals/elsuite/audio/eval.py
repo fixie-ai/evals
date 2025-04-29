@@ -206,15 +206,15 @@ class Transcribe(MatchAudioTask):
     # Arabic diacritic marks
     arabic_diacritics = re.compile(r"[\u064B-\u065F\u0670]")
     
-    def __init__(self, *args, text_field: str = "text", task_prompt_override: str = None, cut_off_transcription: bool = False, **kwargs):
+    def __init__(self, *args, text_field: str = "text", audio_field: str = "audio", task_prompt_override: str = None, **kwargs):
         super().__init__(*args, **kwargs)
         self.text_field = text_field
+        self.audio_field = audio_field
         if task_prompt_override:
             self.TASK_PROMPT = task_prompt_override
-        self.cut_off_transcription = cut_off_transcription
 
     def _build_prompt(self, sample: Sample, text_only: bool = False):
-        input = sample[self.text_field] if text_only else sample["audio"]
+        input = sample[self.text_field] if text_only else sample[self.audio_field]
         return build_messages(self.DEFAULT_PROMPT, f"{self.TASK_PROMPT}{AUDIO_PLACEHOLDER}", input)
 
     def _compute_metrics(self, sample: Sample, sampled):
@@ -262,10 +262,6 @@ class Transcribe(MatchAudioTask):
         # Handle empty strings
         expected = [e if e.strip() else "<silence>" for e in expected]
         sampled = [s if s.strip() else "<silence>" for s in sampled]
-
-        if self.cut_off_transcription:
-            pair = [(e, s[:2*len(e)]) for e, s in zip(expected, sampled)]
-            expected, sampled = zip(*pair)
 
         wer_metric = evaluate.load("wer")
 

@@ -4,8 +4,33 @@
 # any solver that accepts text input.
 
 generation/whisper:
-  class: evals.solvers.providers.openai.whisper_solver:WhisperSolver
+  class: evals.solvers.providers.openai.whisper_solver:OpenAITranscriptionSolver
+  args:
+    model: whisper-1
   
+generation/openai/gpt-4o-transcribe:
+  class: evals.solvers.providers.openai.whisper_solver:OpenAITranscriptionSolver
+  args:
+    model: gpt-4o-transcribe
+
+generation/openai/gpt-4o-mini-transcribe:
+  class: evals.solvers.providers.openai.whisper_solver:OpenAITranscriptionSolver
+  args:
+    model: gpt-4o-mini-transcribe
+
+generation/openai/gpt-4o-transcribe-en:
+  class: evals.solvers.providers.openai.whisper_solver:OpenAITranscriptionSolver
+  args:
+    model: gpt-4o-transcribe
+    language: en
+
+generation/openai/gpt-4o-mini-transcribe-en:
+  class: evals.solvers.providers.openai.whisper_solver:OpenAITranscriptionSolver
+  args:
+    model: gpt-4o-mini-transcribe
+    language: en
+    
+
 generation/whisper/fireworks-llama-33-70b-instruct: 
   class: evals.solvers.providers.openai.whisper_solver:WhisperCascadedSolver
   args:

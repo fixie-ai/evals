@@ -106,47 +106,21 @@ ultravox-calls-prekrisp-transcription.test.v1:
     dataset: hf://fixie-ai/ultravox-calls?name=en-prekrisp&split=test
     text_field: clean_transcription
 
-# Ultravox-calls with cutoff
-# Cutoff is a method to measure the accuracy of the model when the length of the 
-# transcription is limited to twice the length of the reference transcription.
-
-# This is a temporary method to measure the accuracy of the model excluding hallucinations
-ultravox-calls-telephony-transcription-cutoff:
-  id: ultravox-calls-telephony-transcription-cutoff.test.v1
+ultravox-calls-v2-transcription:
+  id: ultravox-calls-v2-transcription.test.v1
   metrics: [accuracy]
-ultravox-calls-telephony-transcription-cutoff.test.v1:
+ultravox-calls-v2-transcription.test.v1:
   class: evals.elsuite.audio.eval:Transcribe
   args:
-    dataset: hf://fixie-ai/ultravox-calls?name=en-telephony&split=test
+    dataset: hf://fixie-ai/ultravox-calls-v2?name=en&split=test
     text_field: clean_transcription
-    cut_off_transcription: True
 
-ultravox-calls-telephony-prekrisp-transcription-cutoff:
-  id: ultravox-calls-telephony-prekrisp-transcription-cutoff.test.v1
+ultravox-calls-v2-prekrisp-transcription:
+  id: ultravox-calls-v2-prekrisp-transcription.test.v1
   metrics: [accuracy]
-ultravox-calls-telephony-prekrisp-transcription-cutoff.test.v1:
+ultravox-calls-v2-prekrisp-transcription.test.v1:
   class: evals.elsuite.audio.eval:Transcribe
   args:
-    dataset: hf://fixie-ai/ultravox-calls?name=en-telephony-prekrisp&split=test
+    dataset: hf://fixie-ai/ultravox-calls-v2?name=en-prekrisp&split=test
     text_field: clean_transcription
-    cut_off_transcription: True
 
-ultravox-calls-transcription-cutoff:
-  id: ultravox-calls-transcription-cutoff.test.v1
-  metrics: [accuracy]
-ultravox-calls-transcription-cutoff.test.v1:
-  class: evals.elsuite.audio.eval:Transcribe
-  args:
-    dataset: hf://fixie-ai/ultravox-calls?name=en&split=test
-    text_field: clean_transcription
-    cut_off_transcription: True
-
-ultravox-calls-prekrisp-transcription-cutoff:
-  id: ultravox-calls-prekrisp-transcription-cutoff.test.v1
-  metrics: [accuracy]
-ultravox-calls-prekrisp-transcription-cutoff.test.v1:
-  class: evals.elsuite.audio.eval:Transcribe
-  args:
-    dataset: hf://fixie-ai/ultravox-calls?name=en-prekrisp&split=test
-    text_field: clean_transcription
-    cut_off_transcription: True

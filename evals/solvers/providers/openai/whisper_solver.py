@@ -47,21 +47,29 @@ class TranscriptionSolver(Solver):
 
     
 
-class WhisperSolver(TranscriptionSolver):
+class OpenAITranscriptionSolver(TranscriptionSolver):
+    def __init__(self, model: str, language: Optional[str] = None, **kwargs):
+        super().__init__(**kwargs)
+        self.model = model
+        self.language = language
+
     @property
     def name(self) -> str:
-        return "whisper"
+        return f"openai_{self.model}"
     
     @property
     def model_version(self) -> str:
-        return "whisper-1"
+        return self.model
     
     def _transcribe(self, wav_bytes: bytes) -> str:
         if not self.client:
             self.client = openai.OpenAI(base_url=self.base_url, api_key=self.api_key)
         file = io.BytesIO(wav_bytes)
         file.name = "test.wav"
-        return self.client.audio.transcriptions.create(model="whisper-1", file=file).text
+        if self.language:
+            return self.client.audio.transcriptions.create(model=self.model, file=file, language=self.language, temperature=0.0).text
+        else:
+            return self.client.audio.transcriptions.create(model=self.model, file=file, temperature=0.0).text
 
 
 class WhisperCascadedSolver(NestedSolver):

@@ -11,15 +11,14 @@ class ElevenSolver(TranscriptionSolver):
     def __init__(self, language_code: Optional[str] = None, **kwargs):
         super().__init__(**kwargs)
         self.language_code = language_code if language_code else None
-        print("LANGUAGE CODE", self.language_code)
 
     @property
     def name(self) -> str:
-        return "whisper"
+        return "scribe"
     
     @property
     def model_version(self) -> str:
-        return "whisper-1"
+        return "scribe-v1"
     
     def _transcribe(self, wav_bytes: bytes) -> str:
         if not self.client:
