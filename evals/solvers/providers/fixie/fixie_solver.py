@@ -4,7 +4,7 @@ from evals.solvers.providers.openai.third_party_solver import ThirdPartySolver
 
 
 class FixieSolver(ThirdPartySolver):
-    AUDIO_PLACEHOLDER = "<|reserved_special_token_0|>"
+    AUDIO_PLACEHOLDER = "<|audio|>"
 
     def __init__(self, api_base: Optional[str] = None, **kwargs):
         super().__init__(api_base or "https://api.ultravox.ai/api/", "ULTRAVOX_API_KEY", **kwargs)
