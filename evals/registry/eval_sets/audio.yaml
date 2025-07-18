@@ -93,7 +93,7 @@ audio-transcription-set:
 
 ultravox-calls-transcription-set:
   evals:
-    # - ultravox-calls-telephony-prekrisp-transcription
-    # - ultravox-calls-prekrisp-transcription
-    # - ultravox-calls-v2-transcription
+    - ultravox-calls-telephony-prekrisp-transcription
+    - ultravox-calls-prekrisp-transcription
+    - ultravox-calls-v2-transcription
     - ultravox-calls-v2-prekrisp-transcription
