@@ -1,7 +1,9 @@
 # List of models
-models=("direct/ultravox-70b" "direct/ultravox-8b" "scribe" "scribe-eng" "deepgram/nova-3" "deepgram/nova-2" "deepgram/nova-2-en" "whisper" "openai/gpt-4o-transcribe" "openai/gpt-4o-mini-transcribe" "openai/gpt-4o-transcribe-en" "openai/gpt-4o-mini-transcribe-en")
+# models=("direct/ultravox-70b" "direct/ultravox-8b" "scribe" "scribe-eng" "deepgram/nova-3" "deepgram/nova-2" "deepgram/nova-2-en" "whisper" "openai/gpt-4o-transcribe" "openai/gpt-4o-mini-transcribe" "openai/gpt-4o-transcribe-en" "openai/gpt-4o-mini-transcribe-en")
+# models=("scribe" "scribe-eng" "deepgram/nova-3" "deepgram/nova-2" "deepgram/nova-2-en" "whisper" "openai/gpt-4o-transcribe" "openai/gpt-4o-mini-transcribe" "openai/gpt-4o-transcribe-en" "openai/gpt-4o-mini-transcribe-en")
+models=("deepgram/nova-3-multi" "deepgram/nova-3" "deepgram/nova-3-en" "deepgram/nova-2" "deepgram/nova-2-en")
 # Base directory for results
-base_dir="results"
+base_dir="results_20250710"
 
 # Iterate over each model
 for model in "${models[@]}"; do
@@ -26,5 +28,5 @@ for model in "${models[@]}"; do
     log_file="$model_dir/audio_transcription.txt"
 
     # Run the evaluation command
-    EVALS_THREADS=$EVALS_THREADS oaievalset generation/$model audio-transcription-set --log_to_file "$log_file" --record_dir "$model_dir/" --max_samples 5000
+    EVALS_THREADS=$EVALS_THREADS oaievalset generation/$model ultravox-calls-transcription-set --log_to_file "$log_file" --record_dir "$model_dir/" --max_samples 5000
 done
