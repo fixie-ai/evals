@@ -3,6 +3,12 @@ generation/deepgram/nova-3:
   args:
     model_name: nova-3
 
+generation/deepgram/nova-3-multi:
+  class: evals.solvers.providers.deepgram.deepgram_solver:DeepgramSolver
+  args:
+    model_name: nova-3
+    language: multi
+
 generation/deepgram/nova-2:
   class: evals.solvers.providers.deepgram.deepgram_solver:DeepgramSolver
   args:

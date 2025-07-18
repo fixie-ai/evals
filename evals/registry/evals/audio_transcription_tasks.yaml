@@ -112,15 +112,19 @@ ultravox-calls-v2-transcription:
 ultravox-calls-v2-transcription.test.v1:
   class: evals.elsuite.audio.eval:Transcribe
   args:
-    dataset: hf://fixie-ai/ultravox-calls-v2?name=en&split=test
-    text_field: clean_transcription
-
+    dataset: hf://fixie-ai/ultravox-calls-contextual-v2?name=en&split=test
+    text_field: transcription
+    min_audio_duration: 0.01
+    max_audio_duration: -1
+    
 ultravox-calls-v2-prekrisp-transcription:
   id: ultravox-calls-v2-prekrisp-transcription.test.v1
   metrics: [accuracy]
 ultravox-calls-v2-prekrisp-transcription.test.v1:
   class: evals.elsuite.audio.eval:Transcribe
   args:
-    dataset: hf://fixie-ai/ultravox-calls-v2?name=en-prekrisp&split=test
-    text_field: clean_transcription
+    dataset: hf://fixie-ai/ultravox-calls-contextual-v2?name=en-prekrisp&split=test
+    text_field: transcription
+    min_audio_duration: 0.01
+    max_audio_duration: -1
 
