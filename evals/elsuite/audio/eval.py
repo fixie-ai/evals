@@ -211,8 +211,8 @@ class Transcribe(MatchAudioTask):
         super().__init__(*args, **kwargs)
         self.text_field = text_field
         self.audio_field = audio_field
-        if self.language_hint is not None:
-            self.TASK_PROMPT = f"Repeat the following text, which is written in {self.language_hint}, as it is without any explanation: "
+        if language_hint is not None:
+            self.TASK_PROMPT = f"Repeat the following text, which is written in {language_hint}, as it is without any explanation: "
 
     def _build_prompt(self, sample: Sample, text_only: bool = False):
         input = sample[self.text_field] if text_only else sample[self.audio_field]
