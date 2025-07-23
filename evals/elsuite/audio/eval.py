@@ -202,7 +202,7 @@ class ModelGradedAudioTask(AudioTask):
 
 class Transcribe(MatchAudioTask):
     TASK_PROMPT = f"Repeat the following text, without any explanation: "
-    DEFAULT_PROMPT = "\n\nCutting Knowledge Date: December 2023\nToday Date: 26 Jul 2024\n\n"
+    DEFAULT_PROMPT = ""
     
     # Arabic diacritic marks
     arabic_diacritics = re.compile(r"[\u064B-\u065F\u0670]")
