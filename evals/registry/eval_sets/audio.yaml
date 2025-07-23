@@ -97,3 +97,18 @@ ultravox-calls-transcription-set:
     - ultravox-calls-prekrisp-transcription
     - ultravox-calls-v2-transcription
     - ultravox-calls-v2-prekrisp-transcription
+
+audio-transcription-set-en:
+  evals:
+    - fleurs-en-transcription
+    - librispeech-clean-transcription
+    - librispeech-other-transcription
+    - commonvoice-en-transcription
+    - ami-ihm-transcription
+    - ami-ihm-transcription-short
+    - ultravox-calls-telephony-transcription
+    - ultravox-calls-telephony-prekrisp-transcription
+    - ultravox-calls-prekrisp-transcription
+    - ultravox-calls-transcription
+    - ultravox-calls-v2-transcription
+    - ultravox-calls-v2-prekrisp-transcription

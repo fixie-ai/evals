@@ -128,3 +128,147 @@ ultravox-calls-v2-prekrisp-transcription.test.v1:
     min_audio_duration: 0.01
     max_audio_duration: -1
 
+librispeech-clean-transcription-en:
+  id: librispeech-clean-transcription-en.test.v1
+  metrics: [accuracy]
+librispeech-clean-transcription-en.test.v1:
+  class: evals.elsuite.audio.eval:Transcribe
+  args:
+    language_hint: English
+    dataset: hf://openslr/librispeech_asr?split=test.clean
+
+librispeech-other-transcription-en:
+  id: librispeech-other-transcription-en.test.v1
+  metrics: [accuracy]
+librispeech-other-transcription-en.test.v1:
+  class: evals.elsuite.audio.eval:Transcribe
+  args:
+    language_hint: English
+    dataset: hf://openslr/librispeech_asr?split=test.other
+
+fleurs-en-transcription-en:
+  id: fleurs-en-transcription-en.test.v1
+  metrics: [accuracy]
+fleurs-en-transcription-en.test.v1:
+  class: evals.elsuite.audio.eval:Transcribe
+  args:
+    language_hint: English
+    dataset: hf://fixie-ai/fleurs?name=en_us&split=test
+    text_field: transcription
+
+fleurs-hi-transcription-hi:
+  id: fleurs-hi-transcription-hi.test.v1
+  metrics: [accuracy]
+fleurs-hi-transcription-hi.test.v1:
+  class: evals.elsuite.audio.eval:Transcribe
+  args:
+    language_hint: Hindi
+    dataset: hf://fixie-ai/fleurs?name=hi_in&split=test
+    text_field: transcription
+
+commonvoice-en-transcription-en:
+  id: commonvoice-en-transcription-en.test.v1
+  metrics: [accuracy]
+commonvoice-en-transcription-en.test.v1:
+  class: evals.elsuite.audio.eval:Transcribe
+  args:
+    language_hint: English
+    dataset: hf://fixie-ai/common_voice_17_0?name=en&split=test
+    text_field: sentence
+
+commonvoice-hi-transcription-hi:
+  id: commonvoice-hi-transcription-hi.test.v1
+  metrics: [accuracy]
+commonvoice-hi-transcription-hi.test.v1:
+  class: evals.elsuite.audio.eval:Transcribe
+  args:
+    language_hint: Hindi
+    dataset: hf://fixie-ai/common_voice_17_0?name=hi&split=test
+    text_field: sentence
+
+ami-ihm-transcription-en:
+  id: ami-ihm-transcription-en.test.v1
+  metrics: [accuracy]
+ami-ihm-transcription-en.test.v1:
+  class: evals.elsuite.audio.eval:Transcribe
+  args:
+    language_hint: English
+    dataset: hf://edinburghcstr/ami?name=ihm&split=test
+    min_audio_duration: 0.5
+
+ami-ihm-transcription-short-en:
+  id: ami-ihm-transcription-short-en.test.v1
+  metrics: [accuracy]
+ami-ihm-transcription-short-en.test.v1:
+  class: evals.elsuite.audio.eval:Transcribe
+  args:
+    language_hint: English
+    dataset: hf://edinburghcstr/ami?name=ihm&split=test
+    max_audio_duration: 3.0
+    min_audio_duration: 0.5
+
+# Ultravox-calls
+ultravox-calls-telephony-transcription-en:
+  id: ultravox-calls-telephony-transcription-en.test.v1
+  metrics: [accuracy]
+ultravox-calls-telephony-transcription-en.test.v1:
+  class: evals.elsuite.audio.eval:Transcribe
+  args:
+    language_hint: English
+    dataset: hf://fixie-ai/ultravox-calls?name=en-telephony&split=test
+    text_field: clean_transcription
+
+ultravox-calls-telephony-prekrisp-transcription-en:
+  id: ultravox-calls-telephony-prekrisp-transcription-en.test.v1
+  metrics: [accuracy]
+ultravox-calls-telephony-prekrisp-transcription-en.test.v1:
+  class: evals.elsuite.audio.eval:Transcribe
+  args:
+    language_hint: English
+    dataset: hf://fixie-ai/ultravox-calls?name=en-telephony-prekrisp&split=test
+    text_field: clean_transcription
+
+ultravox-calls-transcription-en:
+  id: ultravox-calls-transcription-en.test.v1
+  metrics: [accuracy]
+ultravox-calls-transcription-en.test.v1:
+  class: evals.elsuite.audio.eval:Transcribe
+  args:
+    language_hint: English
+    dataset: hf://fixie-ai/ultravox-calls?name=en&split=test
+    text_field: clean_transcription
+
+ultravox-calls-prekrisp-transcription-en:
+  id: ultravox-calls-prekrisp-transcription-en.test.v1
+  metrics: [accuracy]
+ultravox-calls-prekrisp-transcription-en.test.v1:
+  class: evals.elsuite.audio.eval:Transcribe
+  args:
+    language_hint: English
+    dataset: hf://fixie-ai/ultravox-calls?name=en-prekrisp&split=test
+    text_field: clean_transcription
+
+ultravox-calls-v2-transcription-en:
+  id: ultravox-calls-v2-transcription-en.test.v1
+  metrics: [accuracy]
+ultravox-calls-v2-transcription-en.test.v1:
+  class: evals.elsuite.audio.eval:Transcribe
+  args:
+    language_hint: English
+    dataset: hf://fixie-ai/ultravox-calls-contextual-v2?name=en&split=test
+    text_field: transcription
+    min_audio_duration: 0.01
+    max_audio_duration: -1
+    
+ultravox-calls-v2-prekrisp-transcription-en:
+  id: ultravox-calls-v2-prekrisp-transcription-en.test.v1
+  metrics: [accuracy]
+ultravox-calls-v2-prekrisp-transcription-en.test.v1:
+  class: evals.elsuite.audio.eval:Transcribe
+  args:
+    language_hint: English
+    dataset: hf://fixie-ai/ultravox-calls-contextual-v2?name=en-prekrisp&split=test
+    text_field: transcription
+    min_audio_duration: 0.01
+    max_audio_duration: -1
+

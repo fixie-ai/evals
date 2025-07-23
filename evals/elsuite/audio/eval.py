@@ -207,12 +207,12 @@ class Transcribe(MatchAudioTask):
     # Arabic diacritic marks
     arabic_diacritics = re.compile(r"[\u064B-\u065F\u0670]")
     
-    def __init__(self, *args, text_field: str = "text", audio_field: str = "audio", task_prompt_override: str = None, **kwargs):
+    def __init__(self, *args, text_field: str = "text", audio_field: str = "audio", language_hint: str = None, **kwargs):
         super().__init__(*args, **kwargs)
         self.text_field = text_field
         self.audio_field = audio_field
-        if task_prompt_override:
-            self.TASK_PROMPT = task_prompt_override
+        if self.language_hint is not None:
+            self.TASK_PROMPT = f"Repeat the following text, which is written in {self.language_hint}, as it is without any explanation: "
 
     def _build_prompt(self, sample: Sample, text_only: bool = False):
         input = sample[self.text_field] if text_only else sample[self.audio_field]
