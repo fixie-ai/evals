@@ -75,7 +75,7 @@ class AudioTask(evals.Eval):
         """
         Allows for applying additional filtering to samples before evaluation.
 
-        Currently only filters out samples with audio longer than max_audio_duration.
+        Filters out samples with audio longer than max_audio_duration and shorter than min_audio_duration
         """
         audio_duration = get_audio_duration(sample["audio"])
         return (audio_duration < self.max_audio_duration or self.max_audio_duration == -1) and (audio_duration > self.min_audio_duration or self.min_audio_duration == -1)
