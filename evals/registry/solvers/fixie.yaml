@@ -8,7 +8,7 @@ generation/direct/ultravox-70b:
         # empirically, setting frequency_penalty to 1.0 seems to get us closer to the HF results
         # but it's not clear why this is necessary
         # TODO: investigate and try to match HF/VLLM results without this
-        frequency_penalty: 0.0
+        frequency_penalty: 1.0
 
 generation/direct/ultravox-8b:
   class: evals.solvers.providers.fixie.fixie_solver:FixieSolver
@@ -20,7 +20,7 @@ generation/direct/ultravox-8b:
         # empirically, setting frequency_penalty to 1.0 seems to get us closer to the HF results
         # but it's not clear why this is necessary
         # TODO: investigate and try to match HF/VLLM results without this
-        frequency_penalty: 0.0
+        frequency_penalty: 1.0
 
 generation/gpu/ultravox-dev:
   class: evals.solvers.providers.fixie.local_gpu_solver:FixieGPUSolver
