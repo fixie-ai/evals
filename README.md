@@ -100,19 +100,5 @@ By contributing to evals, you are agreeing to make your evaluation logic and dat
 
 # Transcription
 
-This repo has been modified to allow for transcription evaluations on transcription-only models and models that support textual inputs with an audio tag. To see an example of usage, have a look at [script/run_transcription_evals.sh](scripts/run_transcription_evals.sh).
-
-After running transcription, you can also postprocess the results and format them in csv files with the following script:
-
-```bash
-# Capping transcription length = None; Basic transcription results
-python scripts/capped_wer.py
-```
-
-If you want to cap the transcription outputs (to remove long hallucinations), you can run with the following:
-
-```bash
-# Capping transcription length = 200; results capped at 200% of the reference length
-python scripts/capped_wer.py --cap-len 200
-```
+This repo has been modified to allow for transcription evaluations on transcription-only models and models that support textual inputs with an audio tag. To see an example of usage, have a look at [script/run_third_party_transcription.sh](scripts/run_third_party_transcription.sh).
 
