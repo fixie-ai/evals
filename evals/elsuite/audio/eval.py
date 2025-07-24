@@ -272,7 +272,7 @@ class Transcribe(MatchAudioTask):
             logging.info(f"Error: {e}")
             logging.info(f"Expected: {expected}, Sampled: {sampled}")
             wer_score = 0.0
-        return wer_score*100
+        return wer_score
 
 class Translate(MatchAudioTask):
     TASK_PROMPT = f"Please translate the text to {{language}}. Your response should only include the {{language}} translation, without any additional words:\n\n{AUDIO_PLACEHOLDER}"
