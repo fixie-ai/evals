@@ -16,7 +16,17 @@ def load_hf_dataset(hf_url: str, max_samples: Optional[int]) -> Dataset:
     parsed = urlparse(hf_url)
     query = parse_qs(parsed.query)
     query = {k: v[0] for k, v in query.items()}
-    ds = load_dataset(parsed.netloc + parsed.path, **query, streaming=True, trust_remote_code=True)
+    
+    # Handle config parameter separately
+    config = query.pop('config', None)
+
+    # Load dataset with proper parameters
+    if config:
+        ds = load_dataset(parsed.netloc + parsed.path, name=config, **query, streaming=True)
+    else:
+        ds = load_dataset(parsed.netloc + parsed.path, **query, streaming=True)
+    # ds = load_dataset(parsed.netloc + parsed.path, **query, streaming=True, trust_remote_code=True)
+
     if max_samples:
         ds = ds.take(max_samples)
     return ds

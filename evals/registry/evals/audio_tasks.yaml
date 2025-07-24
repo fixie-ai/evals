@@ -125,6 +125,24 @@ audio-bigbench.validation.v1:
     dataset: hf://fixie-ai/big_bench_audio?split=train
     eval_completion_fn: gpt-4o
 
+audio-voicebench-alpaca:
+  id: audio-voicebench-alpaca.validation.v1
+  metrics: [accuracy]
+audio-voicebench-alpaca.validation.v1:
+  class: evals.elsuite.audio.eval:VoiceBenchTask
+  args:
+    dataset: hf://hlt-lab/voicebench?config=alpacaeval_full&split=test
+    eval_completion_fn: gpt-4o-mini
+
+audio-voicebench-wildvoices:
+  id: audio-voicebench-wildvoices.validation.v1
+  metrics: [accuracy]
+audio-voicebench-wildvoices.validation.v1:
+  class: evals.elsuite.audio.eval:VoiceBenchTask
+  args:
+    dataset: hf://hlt-lab/voicebench?config=wildvoices&split=test
+    eval_completion_fn: gpt-4o-mini
+
 audiobench-cn-college-listen-mcq:
   id: audiobench-cn-college-listen-mcq.validation.v1
   metrics: [accuracy]

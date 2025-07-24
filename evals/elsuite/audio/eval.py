@@ -651,3 +651,99 @@ class AudioBenchTask(MatchAudioTask):
         events = self.recorder.get_metrics()
         scores = [e["score"] for e in events]
         return {"average_score": sum(scores) / len(scores) if scores else 0}
+
+
+class VoiceBenchTask(MatchAudioTask):
+    SYSTEM_PROMPT = """
+    You are a friendly and helpful character. You love to answer questions for people.
+    """
+    TASK_PROMPT = AUDIO_PLACEHOLDER
+
+    META_PROMPT_OPEN = """
+    I need your help to evaluate the performance of several models in the speech interaction scenario. The models will receive a speech input from the user, which they need to understand and respond to with a speech output.
+    Your task is to rate the model's responses based on the provided user input transcription [Instruction] and the model's output transcription [Response].
+
+    Please evaluate the response on a scale of 1 to 5:
+    1 point: The response is largely irrelevant, incorrect, or fails to address the user's query. It may be off-topic or provide incorrect information.
+    2 points: The response is somewhat relevant but lacks accuracy or completeness. It may only partially answer the user's question or include extraneous information.
+    3 points: The response is relevant and mostly accurate, but it may lack conciseness or include unnecessary details that don't contribute to the main point.
+    4 points: The response is relevant, accurate, and concise, providing a clear answer to the user's question without unnecessary elaboration.
+    5 points: The response is exceptionally relevant, accurate, and to the point. It directly addresses the user's query in a highly effective and efficient manner, providing exactly the information needed.
+
+    Below are the transcription of user's instruction and models' response:
+    ### [Instruction]: {prompt}
+    ### [Response]: {response}
+
+    After evaluating, please output the score only without anything else.
+    You don't need to provide any explanations.
+    """
+
+    META_PROMPT_QA = """
+    ### Question
+    {prompt}
+
+    ### Reference answer
+    {reference}
+
+    ### Candidate answer
+    {response}
+
+    Is the candidate answer correct based on the question and reference answer? 
+    Please only output a single "Yes" or "No". Do not output anything else.
+    """.strip()
+
+    def __init__(self, eval_completion_fn: CompletionFn, is_mcq: bool = False, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        self.is_mcq = is_mcq
+        self.eval_completion_kwargs = {"max_tokens": 1024, "temperature": 0.5, "frequency_penalty": 0, "top_p": 0.95, "n": 3, "stop": None}
+        self.eval_completion_fn = evals.registry.Registry().make_completion_fn(eval_completion_fn)
+
+    # def _load_dataset(self):
+    #     ds = (
+    #         load_hf_dataset(self.dataset, evals.eval._MAX_SAMPLES)
+    #         .cast_column("audio", Audio(sampling_rate=DEFAULT_SAMPLE_RATE))
+    #     )
+    #     return list(ds)
+
+    def _build_prompt(self, sample: Sample, text_only: bool = False):
+        input = sample["prompt"] if text_only else sample["audio"]
+        return build_messages(self.SYSTEM_PROMPT, self.TASK_PROMPT, input)
+
+    def _compute_metrics(self, sample: Sample, sampled: str):
+        print(sampled)
+        if 'reference' in sample:
+            prompt_template = self.META_PROMPT_QA.replace('{prompt}', sample['prompt']).replace('{reference}', sample['reference']).replace('{response}', sampled['generated_answer'])
+        else:
+            prompt_template = self.META_PROMPT_OPEN.replace("{prompt}", sample['prompt']).replace('{response}', sampled['generated_answer'])
+        messages = [
+            {"role": "system", "content": "You are a helpful assistant who tries to help answer the user's question."},
+            {
+                "role": "user", 
+                "content": prompt_template,
+            }
+        ]
+
+        response = self.eval_completion_fn(prompt=messages, **self.eval_completion_kwargs)
+
+        # Extract score from response
+        rating_text = response.get_completions()[0].strip()
+        try:
+            score = int(rating_text.split()[-1])
+        except (ValueError, IndexError):
+            score = 0
+
+        # Record results based on config
+        if self.is_mcq:
+            evals.record.record_match(score == 1, expected=sample["answer"], sampled=sampled)
+        else:
+            evals.record.record_metrics(choice=sampled, score=score)
+
+        return score
+
+    # def _compute_corpus_metrics(self):
+    #     if self.is_mcq:
+    #         return {"accuracy": evals.metrics.get_accuracy(self._get_match_events())}
+        
+    #     events = self.recorder.get_metrics()
+    #     scores = [e["score"] for e in events]
+    #     return {"average_score": sum(scores) / len(scores) if scores else 0}
