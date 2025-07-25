@@ -695,26 +695,25 @@ class VoiceBenchTask(MatchAudioTask):
     def __init__(self, eval_completion_fn: CompletionFn, is_mcq: bool = False, *args, **kwargs):
         super().__init__(*args, **kwargs)
         self.is_mcq = is_mcq
-        self.eval_completion_kwargs = {"max_tokens": 1024, "temperature": 0.5, "frequency_penalty": 0, "top_p": 0.95, "n": 3, "stop": None}
+        self.eval_completion_kwargs = {"max_tokens": 1024, "temperature": 0.5, "frequency_penalty": 0, "top_p": 0.95, "n": 1, "stop": None}
         self.eval_completion_fn = evals.registry.Registry().make_completion_fn(eval_completion_fn)
 
-    # def _load_dataset(self):
-    #     ds = (
-    #         load_hf_dataset(self.dataset, evals.eval._MAX_SAMPLES)
-    #         .cast_column("audio", Audio(sampling_rate=DEFAULT_SAMPLE_RATE))
-    #     )
-    #     return list(ds)
+    def _load_dataset(self):
+        ds = (
+            load_hf_dataset(self.dataset, evals.eval._MAX_SAMPLES)
+            .cast_column("audio", Audio(sampling_rate=DEFAULT_SAMPLE_RATE))
+        )
+        return list(ds)
 
     def _build_prompt(self, sample: Sample, text_only: bool = False):
-        input = sample["prompt"] if text_only else sample["audio"]
+        input = sample["prompt"] #if text_only else sample["audio"]
         return build_messages(self.SYSTEM_PROMPT, self.TASK_PROMPT, input)
 
     def _compute_metrics(self, sample: Sample, sampled: str):
-        print(sampled)
         if 'reference' in sample:
-            prompt_template = self.META_PROMPT_QA.replace('{prompt}', sample['prompt']).replace('{reference}', sample['reference']).replace('{response}', sampled['generated_answer'])
+            prompt_template = self.META_PROMPT_QA.replace('{prompt}', sample['prompt']).replace('{reference}', sample['reference']).replace('{response}', sampled)
         else:
-            prompt_template = self.META_PROMPT_OPEN.replace("{prompt}", sample['prompt']).replace('{response}', sampled['generated_answer'])
+            prompt_template = self.META_PROMPT_OPEN.replace("{prompt}", sample['prompt']).replace('{response}', sampled)
         messages = [
             {"role": "system", "content": "You are a helpful assistant who tries to help answer the user's question."},
             {
@@ -727,23 +726,37 @@ class VoiceBenchTask(MatchAudioTask):
 
         # Extract score from response
         rating_text = response.get_completions()[0].strip()
-        try:
-            score = int(rating_text.split()[-1])
-        except (ValueError, IndexError):
-            score = 0
+        
+        if 'reference' in sample:
+            # For QA with reference, expect "Yes" or "No"
+            score = 1 if rating_text.lower().startswith('yes') else 0
+        else:
+            # For open evaluation, expect numeric score
+            try:
+                score = int(rating_text.split()[-1])
+            except (ValueError, IndexError):
+                score = 0
 
         # Record results based on config
-        if self.is_mcq:
-            evals.record.record_match(score == 1, expected=sample["answer"], sampled=sampled)
+        if self.is_mcq or 'reference' in sample:
+            evals.record.record_match(score == 1, expected=sample.get("reference", sample.get("answer", "")), sampled=sampled)
         else:
             evals.record.record_metrics(choice=sampled, score=score)
 
         return score
 
-    # def _compute_corpus_metrics(self):
-    #     if self.is_mcq:
-    #         return {"accuracy": evals.metrics.get_accuracy(self._get_match_events())}
+    def _compute_corpus_metrics(self):
+        if self.is_mcq:
+            return {"accuracy": evals.metrics.get_accuracy(self._get_match_events())}
         
-    #     events = self.recorder.get_metrics()
-    #     scores = [e["score"] for e in events]
-    #     return {"average_score": sum(scores) / len(scores) if scores else 0}
+        # Check if we have any samples with reference answers
+        events = self.recorder.get_metrics()
+        match_events = self._get_match_events()
+        
+        if match_events:
+            # If we have match events (reference-based evaluation), return accuracy
+            return {"accuracy": evals.metrics.get_accuracy(match_events)}
+        else:
+            # Otherwise, return average score for open evaluation
+            scores = [e["score"] for e in events if "score" in e]
+            return {"average_score": sum(scores) / len(scores) if scores else 0}
