@@ -127,20 +127,38 @@ audio-bigbench.validation.v1:
 
 audio-voicebench-alpaca:
   id: audio-voicebench-alpaca.validation.v1
-  metrics: [accuracy]
+  metrics: [score]
 audio-voicebench-alpaca.validation.v1:
   class: evals.elsuite.audio.eval:VoiceBenchTask
   args:
     dataset: hf://hlt-lab/voicebench?config=alpacaeval_full&split=test
     eval_completion_fn: gpt-4o-mini
 
-audio-voicebench-wildvoices:
-  id: audio-voicebench-wildvoices.validation.v1
-  metrics: [accuracy]
-audio-voicebench-wildvoices.validation.v1:
+audio-voicebench-wildvoice:
+  id: audio-voicebench-wildvoice.validation.v1
+  metrics: [score]
+audio-voicebench-wildvoice.validation.v1:
   class: evals.elsuite.audio.eval:VoiceBenchTask
   args:
-    dataset: hf://hlt-lab/voicebench?config=wildvoices&split=test
+    dataset: hf://hlt-lab/voicebench?config=wildvoice&split=test
+    eval_completion_fn: gpt-4o-mini
+
+audio-voicebench-commoneval:
+  id: audio-voicebench-commoneval.validation.v1
+  metrics: [score]
+audio-voicebench-commoneval.validation.v1:
+  class: evals.elsuite.audio.eval:VoiceBenchTask
+  args:
+    dataset: hf://hlt-lab/voicebench?config=commoneval&split=test
+    eval_completion_fn: gpt-4o-mini
+
+audio-voicebench-sd-qa:
+  id: audio-voicebench-sd-qa.validation.v1
+  metrics: [accuracy]
+audio-voicebench-sd-qa.validation.v1:
+  class: evals.elsuite.audio.eval:VoiceBenchTask
+  args:
+    dataset: hf://hlt-lab/voicebench?config=sd-qa&split=usa
     eval_completion_fn: gpt-4o-mini
 
 audiobench-cn-college-listen-mcq:

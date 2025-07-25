@@ -79,4 +79,6 @@ transcript-sqa:
 audio-voicebench:
   evals:
     - audio-voicebench-alpaca.validation.v1
-    - audio-voicebench-wildvoices.validation.v1
+    - audio-voicebench-wildvoice.validation.v1
+    - audio-voicebench-commoneval.validation.v1
+    - audio-voicebench-sd-qa.validation.v1

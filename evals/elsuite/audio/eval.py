@@ -706,7 +706,7 @@ class VoiceBenchTask(MatchAudioTask):
         return list(ds)
 
     def _build_prompt(self, sample: Sample, text_only: bool = False):
-        input = sample["prompt"] #if text_only else sample["audio"]
+        input = sample["prompt"] if text_only else sample["audio"]
         return build_messages(self.SYSTEM_PROMPT, self.TASK_PROMPT, input)
 
     def _compute_metrics(self, sample: Sample, sampled: str):
