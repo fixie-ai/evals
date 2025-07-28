@@ -127,7 +127,7 @@ audio-bigbench.validation.v1:
 
 audio-voicebench-alpaca:
   id: audio-voicebench-alpaca.validation.v1
-  metrics: [score]
+  metrics: [average_score]
 audio-voicebench-alpaca.validation.v1:
   class: evals.elsuite.audio.eval:VoiceBenchTask
   args:
@@ -136,7 +136,7 @@ audio-voicebench-alpaca.validation.v1:
 
 audio-voicebench-wildvoice:
   id: audio-voicebench-wildvoice.validation.v1
-  metrics: [score]
+  metrics: [average_score]
 audio-voicebench-wildvoice.validation.v1:
   class: evals.elsuite.audio.eval:VoiceBenchTask
   args:
@@ -145,7 +145,7 @@ audio-voicebench-wildvoice.validation.v1:
 
 audio-voicebench-commoneval:
   id: audio-voicebench-commoneval.validation.v1
-  metrics: [score]
+  metrics: [average_score]
 audio-voicebench-commoneval.validation.v1:
   class: evals.elsuite.audio.eval:VoiceBenchTask
   args:
@@ -159,6 +159,60 @@ audio-voicebench-sd-qa.validation.v1:
   class: evals.elsuite.audio.eval:VoiceBenchTask
   args:
     dataset: hf://hlt-lab/voicebench?config=sd-qa&split=usa
+    eval_completion_fn: gpt-4o-mini
+
+audio-voicebench-advbench:
+  id: audio-voicebench-advbench.validation.v1
+  metrics: [accuracy]
+audio-voicebench-advbench.validation.v1:
+  class: evals.elsuite.audio.eval:VoiceBenchTask
+  args:
+    dataset: hf://hlt-lab/voicebench?config=advbench&split=test
+    eval_completion_fn: gpt-4o-mini
+
+audio-voicebench-ifeval:
+  id: audio-voicebench-ifeval.validation.v1
+  metrics: [accuracy]
+audio-voicebench-ifeval.validation.v1:
+  class: evals.elsuite.audio.eval:VoiceBenchTask
+  args:
+    dataset: hf://hlt-lab/voicebench?config=ifeval&split=test
+    eval_completion_fn: gpt-4o-mini
+
+audio-voicebench-mmsu:
+  id: audio-voicebench-mmsu.validation.v1
+  metrics: [accuracy]
+audio-voicebench-mmsu.validation.v1:
+  class: evals.elsuite.audio.eval:VoiceBenchTask
+  args:
+    dataset: hf://hlt-lab/voicebench?config=mmsu
+    eval_completion_fn: gpt-4o-mini
+
+audio-voicebench-mtbench:
+  id: audio-voicebench-mtbench.validation.v1
+  metrics: [accuracy]
+audio-voicebench-mtbench.validation.v1:
+  class: evals.elsuite.audio.eval:VoiceBenchTask
+  args:
+    dataset: hf://hlt-lab/voicebench?config=mtbench
+    eval_completion_fn: gpt-4o-mini
+
+audio-voicebench-openbookqa:
+  id: audio-voicebench-openbookqa.validation.v1
+  metrics: [accuracy]
+audio-voicebench-openbookqa.validation.v1:
+  class: evals.elsuite.audio.eval:VoiceBenchTask
+  args:
+    dataset: hf://hlt-lab/voicebench?config=openbookqa
+    eval_completion_fn: gpt-4o-mini
+
+audio-voicebench-bbh:
+  id: audio-voicebench-bbh.validation.v1
+  metrics: [accuracy]
+audio-voicebench-bbh.validation.v1:
+  class: evals.elsuite.audio.eval:VoiceBenchTask
+  args:
+    dataset: hf://hlt-lab/voicebench?config=bbh
     eval_completion_fn: gpt-4o-mini
 
 audiobench-cn-college-listen-mcq:
