@@ -82,6 +82,17 @@ audio-voicebench:
     - audio-voicebench-wildvoice.validation.v1
     - audio-voicebench-commoneval.validation.v1
     - audio-voicebench-sd-qa.validation.v1
-    - audio-voicebench-mmsu.validation.v1
+    - audio-voicebench-mmsu-law.validation.v1
+    - audio-voicebench-mmsu-engineering.validation.v1
+    - audio-voicebench-mmsu-other.validation.v1
+    - audio-voicebench-mmsu-biology.validation.v1
+    - audio-voicebench-mmsu-business.validation.v1
+    - audio-voicebench-mmsu-economics.validation.v1
+    - audio-voicebench-mmsu-health.validation.v1
+    - audio-voicebench-mmsu-philosophy.validation.v1
+    - audio-voicebench-mmsu-psychology.validation.v1
+    - audio-voicebench-mmsu-history.validation.v1
+    - audio-voicebench-mmsu-chemistry.validation.v1
+    - audio-voicebench-mmsu-physics.validation.v1
     - audio-voicebench-openbookqa.validation.v1
     - audio-voicebench-bbh.validation.v1

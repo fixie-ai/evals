@@ -182,10 +182,76 @@ audio-voicebench-ifeval.validation.v1:
 audio-voicebench-mmsu:
   id: audio-voicebench-mmsu.validation.v1
   metrics: [accuracy]
-audio-voicebench-mmsu.validation.v1:
+audio-voicebench-mmsu-law.validation.v1:
   class: evals.elsuite.audio.eval:VoiceBenchTask
   args:
-    dataset: hf://hlt-lab/voicebench?config=mmsu
+    dataset: hf://hlt-lab/voicebench?config=mmsu&split=law
+    eval_completion_fn: gpt-4o-mini
+    is_mcq: true
+audio-voicebench-mmsu-engineering.validation.v1:
+  class: evals.elsuite.audio.eval:VoiceBenchTask
+  args:
+    dataset: hf://hlt-lab/voicebench?config=mmsu&split=engineering
+    eval_completion_fn: gpt-4o-mini
+    is_mcq: true
+audio-voicebench-mmsu-other.validation.v1:
+  class: evals.elsuite.audio.eval:VoiceBenchTask
+  args:
+    dataset: hf://hlt-lab/voicebench?config=mmsu&split=other
+    eval_completion_fn: gpt-4o-mini
+    is_mcq: true
+audio-voicebench-mmsu-biology.validation.v1:
+  class: evals.elsuite.audio.eval:VoiceBenchTask
+  args:
+    dataset: hf://hlt-lab/voicebench?config=mmsu&split=biology
+    eval_completion_fn: gpt-4o-mini
+    is_mcq: true
+audio-voicebench-mmsu-business.validation.v1:
+  class: evals.elsuite.audio.eval:VoiceBenchTask
+  args:
+    dataset: hf://hlt-lab/voicebench?config=mmsu&split=business
+    eval_completion_fn: gpt-4o-mini
+    is_mcq: true
+audio-voicebench-mmsu-economics.validation.v1:
+  class: evals.elsuite.audio.eval:VoiceBenchTask
+  args:
+    dataset: hf://hlt-lab/voicebench?config=mmsu&split=economics
+    eval_completion_fn: gpt-4o-mini
+    is_mcq: true
+audio-voicebench-mmsu-health.validation.v1:
+  class: evals.elsuite.audio.eval:VoiceBenchTask
+  args:
+    dataset: hf://hlt-lab/voicebench?config=mmsu&split=health
+    eval_completion_fn: gpt-4o-mini
+    is_mcq: true
+audio-voicebench-mmsu-philosophy.validation.v1:
+  class: evals.elsuite.audio.eval:VoiceBenchTask
+  args:
+    dataset: hf://hlt-lab/voicebench?config=mmsu&split=philosophy
+    eval_completion_fn: gpt-4o-mini
+    is_mcq: true
+audio-voicebench-mmsu-psychology.validation.v1:
+  class: evals.elsuite.audio.eval:VoiceBenchTask
+  args:
+    dataset: hf://hlt-lab/voicebench?config=mmsu&split=psychology
+    eval_completion_fn: gpt-4o-mini
+    is_mcq: true
+audio-voicebench-mmsu-history.validation.v1:
+  class: evals.elsuite.audio.eval:VoiceBenchTask
+  args:
+    dataset: hf://hlt-lab/voicebench?config=mmsu&split=history
+    eval_completion_fn: gpt-4o-mini
+    is_mcq: true
+audio-voicebench-mmsu-chemistry.validation.v1:
+  class: evals.elsuite.audio.eval:VoiceBenchTask
+  args:
+    dataset: hf://hlt-lab/voicebench?config=mmsu&split=chemistry
+    eval_completion_fn: gpt-4o-mini
+    is_mcq: true
+audio-voicebench-mmsu-physics.validation.v1:
+  class: evals.elsuite.audio.eval:VoiceBenchTask
+  args:
+    dataset: hf://hlt-lab/voicebench?config=mmsu&split=physics
     eval_completion_fn: gpt-4o-mini
     is_mcq: true
 
