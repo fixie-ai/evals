@@ -82,3 +82,6 @@ audio-voicebench:
     - audio-voicebench-wildvoice.validation.v1
     - audio-voicebench-commoneval.validation.v1
     - audio-voicebench-sd-qa.validation.v1
+    - audio-voicebench-mmsu.validation.v1
+    - audio-voicebench-openbookqa.validation.v1
+    - audio-voicebench-bbh.validation.v1
