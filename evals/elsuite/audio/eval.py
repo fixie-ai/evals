@@ -748,25 +748,11 @@ class VoiceBenchTask(MatchAudioTask):
     def _compute_corpus_metrics(self):
         if self.is_mcq:
             return {"accuracy": evals.metrics.get_accuracy(self._get_match_events())}
-        
+
         # Check if we have any samples with reference answers
         events = self.recorder.get_metrics()
         match_events = self._get_match_events()
 
-        # result = {}
-        
-        # # Add accuracy if we have match events
-        # if match_events:
-        #     result["accuracy"] = evals.metrics.get_accuracy(match_events)
-        
-        # # Add average score if we have score events
-        # scores = [e["score"] for e in events if "score" in e]
-        # if scores:
-        #     result["average_score"] = sum(scores) / len(scores)
-        
-        # # Return at least one metric
-        # return result if result else {"accuracy": 0.0}
-        
         if match_events:
             # If we have match events (reference-based evaluation), return accuracy
             return {"accuracy": evals.metrics.get_accuracy(match_events)}
