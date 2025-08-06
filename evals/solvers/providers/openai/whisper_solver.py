@@ -40,7 +40,9 @@ class TranscriptionSolver(Solver):
                             wav_bytes = base64.b64decode(wav_b64)
                             text = self._transcribe(wav_bytes)
                             return text
-        return ""    
+                        
+        # if no message has an audio url, throw an exception
+        raise ValueError("No audio url found in the messages")
 
     def _transcribe(self, wav_bytes: bytes) -> str:
         pass
