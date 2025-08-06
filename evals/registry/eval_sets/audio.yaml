@@ -75,3 +75,40 @@ audio-sqa:
 transcript-sqa:
   evals:
     - transcript-sqa-web-questions
+
+audio-transcription-set:
+  evals:
+    - fleurs-en-transcription
+    - librispeech-clean-transcription
+    - librispeech-other-transcription
+    - commonvoice-en-transcription
+    - ami-ihm-transcription
+    - ami-ihm-transcription-short
+    - ultravox-calls-telephony-transcription
+    - ultravox-calls-telephony-prekrisp-transcription
+    - ultravox-calls-prekrisp-transcription
+    - ultravox-calls-transcription
+    - ultravox-calls-v2-transcription
+    - ultravox-calls-v2-prekrisp-transcription
+
+ultravox-calls-transcription-set:
+  evals:
+    - ultravox-calls-telephony-prekrisp-transcription
+    - ultravox-calls-prekrisp-transcription
+    - ultravox-calls-v2-transcription
+    - ultravox-calls-v2-prekrisp-transcription
+
+audio-transcription-set-en:
+  evals:
+    - fleurs-en-transcription-en
+    - librispeech-clean-transcription-en
+    - librispeech-other-transcription-en
+    - commonvoice-en-transcription-en
+    - ami-ihm-transcription-en
+    - ami-ihm-transcription-short-en
+    - ultravox-calls-telephony-transcription-en
+    - ultravox-calls-telephony-prekrisp-transcription-en
+    - ultravox-calls-prekrisp-transcription-en
+    - ultravox-calls-transcription-en
+    - ultravox-calls-v2-transcription-en
+    - ultravox-calls-v2-prekrisp-transcription-en

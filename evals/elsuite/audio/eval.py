@@ -4,11 +4,14 @@ import string
 from collections import Counter
 from typing import Any, Dict, List, Optional, Union
 
-import jiwer
+import re
+import evaluate
 from datasets import Audio
 from sacrebleu.metrics.bleu import BLEU
 from tenacity import retry, stop_after_attempt, wait_exponential, retry_if_exception_type
 
+import whisper_normalizer.basic as whisper_basic
+import whisper_normalizer.english as whisper_english
 
 import evals
 import evals.metrics
@@ -43,6 +46,8 @@ class AudioTask(evals.Eval):
         temperature: float = 0.7,
         max_tokens: int = 4096,
         max_audio_duration: int = 30, # If -1, no duration check
+        min_audio_duration: int = 0.1, # If -1, no duration check
+        lang_id: str = "en",
         *args,
         **kwargs,
     ):
@@ -54,7 +59,8 @@ class AudioTask(evals.Eval):
         self.max_tokens = max_tokens
         self._recorder = None
         self.max_audio_duration = max_audio_duration
-
+        self.min_audio_duration = min_audio_duration
+        self.lang_id = lang_id
     @property
     def recorder(self):
         return self._recorder
@@ -69,9 +75,10 @@ class AudioTask(evals.Eval):
         """
         Allows for applying additional filtering to samples before evaluation.
 
-        Currently only filters out samples with audio longer than max_audio_duration.
+        Filters out samples with audio longer than max_audio_duration and shorter than min_audio_duration
         """
-        return get_audio_duration(sample["audio"]) < self.max_audio_duration or self.max_audio_duration == -1
+        audio_duration = get_audio_duration(sample["audio"])
+        return (audio_duration < self.max_audio_duration or self.max_audio_duration == -1) and (audio_duration > self.min_audio_duration or self.min_audio_duration == -1)
 
     def run(self, recorder: RecorderBase):
         x = recorder.record_sampling
@@ -108,7 +115,7 @@ class AudioTask(evals.Eval):
             f"Retrying in {retry_state.next_action.sleep} seconds... "
             f"(Attempt {retry_state.attempt_number}/3)"
         ),
-        reraise=False
+        reraise=True
     )
     def _do_completion_with_retries(self, prompt, **kwargs):
         result = self.completion_fn(
@@ -194,14 +201,25 @@ class ModelGradedAudioTask(AudioTask):
 
 
 class Transcribe(MatchAudioTask):
-    TASK_PROMPT = f"Repeat the following text, without any explanation: {AUDIO_PLACEHOLDER}"
+    TASK_PROMPT = f"Repeat the following text, without any explanation: "
+    DEFAULT_PROMPT = ""
+    
+    # Arabic diacritic marks
+    arabic_diacritics = re.compile(r"[\u064B-\u065F\u0670]")
+    
+    def __init__(self, *args, text_field: str = "text", audio_field: str = "audio", language_hint: str = None, **kwargs):
+        super().__init__(*args, **kwargs)
+        self.text_field = text_field
+        self.audio_field = audio_field
+        if language_hint is not None:
+            self.TASK_PROMPT = f"Repeat the following text, which is written in {language_hint}, as it is without any explanation: "
 
     def _build_prompt(self, sample: Sample, text_only: bool = False):
-        input = sample["text"] if text_only else sample["audio"]
-        return build_messages(self.DEFAULT_PROMPT, self.TASK_PROMPT, input)
+        input = sample[self.text_field] if text_only else sample[self.audio_field]
+        return build_messages(self.DEFAULT_PROMPT, f"{self.TASK_PROMPT}{AUDIO_PLACEHOLDER}", input)
 
     def _compute_metrics(self, sample: Sample, sampled):
-        expected = sample["text"]
+        expected = sample[self.text_field]
         score = self._compute_wer(expected, sampled)
         evals.record.record_metrics(wer=score)
         match = score < 0.1
@@ -213,21 +231,48 @@ class Transcribe(MatchAudioTask):
         metrics["wer"] = self._compute_wer(self._get_expected_values(), self._get_sampled_values())
         return metrics
 
-    def _compute_wer(self, expected, sampled):
-        transform = jiwer.Compose(
-            [
-                jiwer.RemovePunctuation(),
-                jiwer.ToLowerCase(),
-                jiwer.RemoveWhiteSpace(replace_by_space=True),
-                jiwer.Strip(),
-                jiwer.ReduceToListOfListOfWords(),
-            ]
-        )
-        output = jiwer.process_words(
-            expected, sampled, reference_transform=transform, hypothesis_transform=transform
-        )
-        return output.wer
+    def remove_diacritics(self,text):
+        return self.arabic_diacritics.sub("", text)
 
+    def _compute_wer(self, expected, sampled):
+        expected = [expected] if not isinstance(expected, list) else expected
+        sampled = [sampled] if not isinstance(sampled, list) else sampled
+
+        # Initialize the appropriate text normalizer
+        if self.lang_id == "en":
+            normalizer = whisper_english.EnglishTextNormalizer()
+        else:
+            normalizer = whisper_basic.BasicTextNormalizer()
+
+
+        if self.lang_id == "ar":
+            expected = [self.remove_diacritics(e) for e in expected]
+            sampled = [self.remove_diacritics(s) for s in sampled]
+
+        # Normalize both reference and hypothesis
+        expected = [normalizer(e) for e in expected]
+        sampled = [normalizer(s) for s in sampled]
+
+
+        # Languages where we compute CER (space-separated characters)
+        if self.lang_id in ["zh", "ja", "th", "lo", "my"]:
+            # Convert to space-separated characters for CER
+            expected = [" ".join(list(e)) for e in expected]
+            sampled = [" ".join(list(s)) for s in sampled]
+
+        # Handle empty strings
+        expected = [e if e.strip() else "<silence>" for e in expected]
+        sampled = [s if s.strip() else "<silence>" for s in sampled]
+
+        wer_metric = evaluate.load("wer")
+
+        try:
+            wer_score = wer_metric.compute(predictions=sampled, references=expected)
+        except ValueError as e:
+            logging.info(f"Error: {e}")
+            logging.info(f"Expected: {expected}, Sampled: {sampled}")
+            wer_score = 0.0
+        return wer_score
 
 class Translate(MatchAudioTask):
     TASK_PROMPT = f"Please translate the text to {{language}}. Your response should only include the {{language}} translation, without any additional words:\n\n{AUDIO_PLACEHOLDER}"

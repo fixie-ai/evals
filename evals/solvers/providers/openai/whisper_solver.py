@@ -3,16 +3,75 @@ import base64
 import io
 from concurrent.futures import ProcessPoolExecutor
 from typing import Any, Optional
-
 import librosa
 import openai
 import torch
 import torch.distributed
 import torch.multiprocessing as mp
 import transformers
-
 from evals.solvers.solver import NestedSolver, Solver, SolverResult, SolverSpec
 from evals.task_state import Message, TaskState
+
+class TranscriptionSolver(Solver):
+    def __init__(
+            self,
+            base_url: Optional[str] = None,
+            api_key: Optional[str] = None,
+            postprocessors: list[str] = [],
+            registry: Any = None,
+    ):
+        super().__init__(postprocessors=postprocessors, registry=registry)
+        self.base_url = base_url
+        self.api_key = api_key
+        self.client: Optional[openai.OpenAI] = None
+
+    def _solve(self, task_state: TaskState, **kwargs) -> SolverResult:
+        return SolverResult(self._process_msgs(task_state.messages))
+    
+    def _process_msgs(self, raw_msgs: list[Message]) -> list[Message]:
+        # process the first message with an audio url
+        for msg in raw_msgs:
+            if msg.role == "user" and isinstance(msg.content, list):
+                for part in msg.content:
+                    if part["type"] == "audio_url":
+                        url = part["audio_url"]["url"]
+                        if url.startswith("data:audio/x-wav;base64,"):
+                            wav_b64 = url.split(",")[1]
+                            wav_bytes = base64.b64decode(wav_b64)
+                            text = self._transcribe(wav_bytes)
+                            return text
+                        
+        # if no message has an audio url, throw an exception
+        raise ValueError("No audio url found in the messages")
+
+    def _transcribe(self, wav_bytes: bytes) -> str:
+        pass
+
+    
+
+class OpenAITranscriptionSolver(TranscriptionSolver):
+    def __init__(self, model: str, language: Optional[str] = None, **kwargs):
+        super().__init__(**kwargs)
+        self.model = model
+        self.language = language
+
+    @property
+    def name(self) -> str:
+        return f"openai_{self.model}"
+    
+    @property
+    def model_version(self) -> str:
+        return self.model
+    
+    def _transcribe(self, wav_bytes: bytes) -> str:
+        if not self.client:
+            self.client = openai.OpenAI(base_url=self.base_url, api_key=self.api_key)
+        file = io.BytesIO(wav_bytes)
+        file.name = "test.wav"
+        if self.language:
+            return self.client.audio.transcriptions.create(model=self.model, file=file, language=self.language, temperature=0.0).text
+        else:
+            return self.client.audio.transcriptions.create(model=self.model, file=file, temperature=0.0).text
 
 
 class WhisperCascadedSolver(NestedSolver):
