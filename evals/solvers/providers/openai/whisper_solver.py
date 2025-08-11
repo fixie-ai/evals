@@ -1,6 +1,7 @@
 # from evals.solvers.providers.openai.openai_solver import OpenAISolver
 import base64
 import io
+import os
 from concurrent.futures import ProcessPoolExecutor
 from typing import Any, Optional
 import librosa
@@ -19,10 +20,13 @@ class TranscriptionSolver(Solver):
             api_key: Optional[str] = None,
             postprocessors: list[str] = [],
             registry: Any = None,
+            api_key_env_var: Optional[str] = None,
     ):
         super().__init__(postprocessors=postprocessors, registry=registry)
         self.base_url = base_url
         self.api_key = api_key
+        if api_key_env_var:
+            self.api_key = os.getenv(api_key_env_var)
         self.client: Optional[openai.OpenAI] = None
 
     def _solve(self, task_state: TaskState, **kwargs) -> SolverResult:
