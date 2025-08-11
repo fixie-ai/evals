@@ -1,6 +1,6 @@
 # List of models
-models=("deepgram/nova-3-multi" "deepgram/nova-3" "deepgram/nova-3-en" "deepgram/nova-2" "deepgram/nova-2-en" "scribe" "scribe-eng" "whisper" "openai/gpt-4o-transcribe" "openai/gpt-4o-mini-transcribe" "openai/gpt-4o-transcribe-en" "openai/gpt-4o-mini-transcribe-en")
-
+# models=("deepgram/nova-3-multi" "deepgram/nova-3" "deepgram/nova-3-en" "deepgram/nova-2" "deepgram/nova-2-en" "scribe" "scribe-eng" "whisper" "openai/gpt-4o-transcribe" "openai/gpt-4o-mini-transcribe" "openai/gpt-4o-transcribe-en" "openai/gpt-4o-mini-transcribe-en")
+models=("whisper-large-v3")
 # Base directory for results
 base_dir="transcription_results"
 
@@ -13,7 +13,7 @@ for model in "${models[@]}"; do
     # Set EVALS_THREADS based on the model
     if [[ "$safe_model_name" == "ultravox-70b" || "$safe_model_name" == "ultravox-8b" ]]; then
         export EVALS_THREADS=2
-    elif [[ "$safe_model_name" == "openai/gpt-4o-transcribe" || "$safe_model_name" == "openai/gpt-4o-mini-transcribe" || "$safe_model_name" == "openai/gpt-4o-transcribe-en" || "$safe_model_name" == "openai/gpt-4o-mini-transcribe-en" ]]; then
+    elif [[ "$safe_model_name" == "openai/gpt-4o-transcribe" || "$safe_model_name" == "openai/gpt-4o-mini-transcribe" || "$safe_model_name" == "openai/gpt-4o-transcribe-en" || "$safe_model_name" == "openai/gpt-4o-mini-transcribe-en" || "$safe_model_name" == "whisper" ]]; then
         export EVALS_THREADS=24
     else
         export EVALS_THREADS=5
