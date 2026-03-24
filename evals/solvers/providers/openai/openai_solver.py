@@ -1,6 +1,6 @@
 import logging
 from typing import Any, Dict, Optional, Union
-from tenacity import retry, stop_after_attempt, wait_exponential, retry_if_exception_type
+from tenacity import retry, stop_after_attempt, wait_exponential, wait_random, retry_if_exception_type
 
 import tiktoken
 from openai import BadRequestError, RateLimitError, APITimeoutError, APIError
@@ -115,7 +115,7 @@ class OpenAISolver(Solver):
     @retry(
         retry=retry_if_exception_type((Exception)),
         stop=stop_after_attempt(10),
-        wait=wait_exponential(multiplier=1, min=1, max=10),
+        wait=wait_exponential(multiplier=1, min=1, max=10) + wait_random(0, 1),
         reraise=True,
         before_sleep=lambda retry_state: logging.warning(
             f"API request failed with error: {retry_state.outcome.exception()}. "
