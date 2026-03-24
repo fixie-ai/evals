@@ -3,8 +3,10 @@ from typing import Any, Optional
 
 from evals.solvers.providers.openai.third_party_solver import ThirdPartySolver
 
-# Matches <think>...</think> block (including newlines) at the start of a response
-_THINK_PATTERN = re.compile(r"^<think>.*?</think>\s*", re.DOTALL)
+# Strips everything up to and including </think> tag.
+# Without --reasoning-parser, vLLM outputs thinking as plain text
+# (e.g. "Thinking Process:\n...\n</think>\n\nActual answer")
+_THINK_PATTERN = re.compile(r"^.*?</think>\s*", re.DOTALL)
 
 
 class FixieSolver(ThirdPartySolver):
