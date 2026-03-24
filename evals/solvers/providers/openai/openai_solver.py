@@ -114,13 +114,13 @@ class OpenAISolver(Solver):
 
     @retry(
         retry=retry_if_exception_type((Exception)),
-        stop=stop_after_attempt(3),
+        stop=stop_after_attempt(10),
         wait=wait_exponential(multiplier=1, min=1, max=10),
         reraise=True,
         before_sleep=lambda retry_state: logging.warning(
             f"API request failed with error: {retry_state.outcome.exception()}. "
             f"Retrying in {retry_state.next_action.sleep} seconds... "
-            f"(Attempt {retry_state.attempt_number}/3)"
+            f"(Attempt {retry_state.attempt_number}/10)"
         )
     )
     def _make_api_request(self, msgs, is_chat_model: bool, **kwargs) -> tuple[Any, str]:
@@ -203,36 +203,10 @@ class OpenAISolver(Solver):
 
     def _handle_completion_exception(self, e: Exception) -> SolverResult:
         """
-        Handles any expected exceptions from the completion function:
-        - context_length_exceeded: The prompt exceeds the context length
-        - too many messages: The prompt has too many messages
-
-        Raises any other exceptions
+        Fail hard on all API errors to avoid silently returning error messages
+        as solver results, which would produce incorrect evaluation scores.
         """
-        if (
-            e.code == "context_length_exceeded"
-            or "Please reduce your prompt; or completion length"
-            in e.message  # For context length errors where code is not specified.
-        ):
-            logging.warn(
-                f"OpenAI API context length exceeded, using error message as solver response: {e.message}"
-            )
-            solver_result = SolverResult(
-                e.message,
-                error=e.body,
-            )
-        elif "'$.messages' is too long" in e.message:  # If we have too many messages
-            logging.warn(
-                f"Exceeded maximum chat messages on OpenAI API, using error message as solver response: {e.message}"
-            )
-            solver_result = SolverResult(
-                e.message,
-                error=e.body,
-            )
-        else:
-            raise e
-
-        return solver_result
+        raise e
 
     def _render_completion_prompt(self, msgs: list[dict[str, str]]) -> str:
         # Render messages as a chat dialogue in plaintext (also postfixes "Assistant: " to tee up the model)
